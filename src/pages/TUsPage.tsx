@@ -6,7 +6,7 @@ export default function TUsPage() {
   const { tus, projects, addTU, updateTU, deleteTU, hasPermission } = useStore();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [newTU, setNewTU] = useState({ fullName: '', position: 'Технический управляющий', phone: '', email: '', isActive: true });
+  const [newTU, setNewTU] = useState({ fullName: '', position: 'Территориальный управляющий', phone: '', email: '', isActive: true });
   const [editData, setEditData] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export default function TUsPage() {
   const handleAdd = () => {
     if (!newTU.fullName) return;
     addTU(newTU);
-    setNewTU({ fullName: '', position: 'Технический управляющий', phone: '', email: '', isActive: true });
+    setNewTU({ fullName: '', position: 'Территориальный управляющий', phone: '', email: '', isActive: true });
     setShowAddForm(false);
   };
 

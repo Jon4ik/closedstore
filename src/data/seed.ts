@@ -1,18 +1,18 @@
 import { StoreProject, TU, SystemUser, Role } from '../types';
 
 export const seedTUs: TU[] = [
-  { id: 'tu-1', fullName: 'Зотов Денис', position: 'Технический управляющий', phone: '+7 (999) 123-45-67', email: 'zotov@company.ru', isActive: true },
-  { id: 'tu-2', fullName: 'Дрямова Валентина', position: 'Технический управляющий', phone: '+7 (999) 234-56-78', email: 'dryamova@company.ru', isActive: true },
-  { id: 'tu-3', fullName: 'Беляева Анна', position: 'Технический управляющий', phone: '+7 (999) 345-67-89', email: 'belyaeva@company.ru', isActive: true },
-  { id: 'tu-4', fullName: 'Королихина Ольга', position: 'Технический управляющий', phone: '+7 (999) 456-78-90', email: 'korolikhina@company.ru', isActive: true },
-  { id: 'tu-5', fullName: 'Батькова Виктория', position: 'Технический управляющий', phone: '+7 (999) 567-89-01', email: 'batkova@company.ru', isActive: true },
-  { id: 'tu-6', fullName: 'Корепина Светлана', position: 'Технический управляющий', phone: '+7 (999) 678-90-12', email: 'korepina@company.ru', isActive: true },
-  { id: 'tu-7', fullName: 'Денисова Елена', position: 'Технический управляющий', phone: '+7 (999) 789-01-23', email: 'denisova@company.ru', isActive: true },
-  { id: 'tu-8', fullName: 'Синкевич Екатерина', position: 'Технический управляющий', phone: '+7 (999) 890-12-34', email: 'sinkevich@company.ru', isActive: true },
-  { id: 'tu-9', fullName: 'Кононовалова Светлана', position: 'Технический управляющий', phone: '+7 (999) 901-23-45', email: 'kononovalova@company.ru', isActive: true },
-  { id: 'tu-10', fullName: 'Дьякова Елизавета', position: 'Технический управляющий', phone: '+7 (999) 012-34-56', email: 'dyakova@company.ru', isActive: true },
-  { id: 'tu-11', fullName: 'Романюк Ксения', position: 'Технический управляющий', phone: '+7 (999) 111-22-33', email: 'romanyuk@company.ru', isActive: true },
-  { id: 'tu-12', fullName: 'Хайруллина Олеся', position: 'Технический управляющий', phone: '+7 (999) 222-33-44', email: 'khairullina@company.ru', isActive: true },
+  { id: 'tu-1', fullName: 'Зотов Денис', position: 'Территориальный управляющий', phone: '+7 (999) 123-45-67', email: 'zotov@company.ru', isActive: true },
+  { id: 'tu-2', fullName: 'Дрямова Валентина', position: 'Территориальный управляющий', phone: '+7 (999) 234-56-78', email: 'dryamova@company.ru', isActive: true },
+  { id: 'tu-3', fullName: 'Беляева Анна', position: 'Территориальный управляющий', phone: '+7 (999) 345-67-89', email: 'belyaeva@company.ru', isActive: true },
+  { id: 'tu-4', fullName: 'Королихина Ольга', position: 'Территориальный управляющий', phone: '+7 (999) 456-78-90', email: 'korolikhina@company.ru', isActive: true },
+  { id: 'tu-5', fullName: 'Батькова Виктория', position: 'Территориальный управляющий', phone: '+7 (999) 567-89-01', email: 'batkova@company.ru', isActive: true },
+  { id: 'tu-6', fullName: 'Корепина Светлана', position: 'Территориальный управляющий', phone: '+7 (999) 678-90-12', email: 'korepina@company.ru', isActive: true },
+  { id: 'tu-7', fullName: 'Денисова Елена', position: 'Территориальный управляющий', phone: '+7 (999) 789-01-23', email: 'denisova@company.ru', isActive: true },
+  { id: 'tu-8', fullName: 'Синкевич Екатерина', position: 'Территориальный управляющий', phone: '+7 (999) 890-12-34', email: 'sinkevich@company.ru', isActive: true },
+  { id: 'tu-9', fullName: 'Кононовалова Светлана', position: 'Территориальный управляющий', phone: '+7 (999) 901-23-45', email: 'kononovalova@company.ru', isActive: true },
+  { id: 'tu-10', fullName: 'Дьякова Елизавета', position: 'Территориальный управляющий', phone: '+7 (999) 012-34-56', email: 'dyakova@company.ru', isActive: true },
+  { id: 'tu-11', fullName: 'Романюк Ксения', position: 'Территориальный управляющий', phone: '+7 (999) 111-22-33', email: 'romanyuk@company.ru', isActive: true },
+  { id: 'tu-12', fullName: 'Хайруллина Олеся', position: 'Территориальный управляющий', phone: '+7 (999) 222-33-44', email: 'khairullina@company.ru', isActive: true },
 ];
 
 export const seedRoles: Role[] = [

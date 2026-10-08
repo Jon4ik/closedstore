@@ -110,7 +110,7 @@ export default function StoreCard() {
               <div className="flex items-start gap-3">
                 <User size={16} className="text-gray-400 mt-0.5" />
                 <div>
-                  <p className="text-xs text-gray-500">ТУ (Технический управляющий)</p>
+                  <p className="text-xs text-gray-500">ТУ (Территориальный управляющий)</p>
                   {isEditing ? (
                     <select value={editData?.tuId || project.tuId} onChange={e => setEditData({ ...editData, tuId: e.target.value })} className="mt-1 text-sm border border-gray-200 rounded-lg px-2 py-1">
                       {tus.filter(t => t.isActive).map(t => <option key={t.id} value={t.id}>{t.fullName}</option>)}
