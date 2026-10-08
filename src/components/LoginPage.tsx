@@ -11,11 +11,8 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
     const success = login(username, password);
-    if (!success) {
-      setError('Неверное имя пользователя или пароль');
-    }
+    if (!success) setError('Неверное имя пользователя или пароль');
   };
 
   return (
@@ -37,36 +34,18 @@ export default function LoginPage() {
                 <p className="text-sm text-red-700">{error}</p>
               </div>
             )}
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Имя пользователя</label>
-              <input
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                placeholder="admin"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                autoFocus
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Логин</label>
+              <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="admin"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" autoFocus />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
             </div>
-
-            <button
-              type="submit"
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-            >
-              <LogIn size={16} />
-              Войти
+            <button type="submit" className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+              <LogIn size={16} /> Войти
             </button>
           </form>
 
@@ -82,8 +61,8 @@ export default function LoginPage() {
                 <span className="font-mono text-gray-500">manager / manager123</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-gray-600">Пользователь:</span>
-                <span className="font-mono text-gray-500">user / user123</span>
+                <span className="text-gray-600">Наблюдатель:</span>
+                <span className="font-mono text-gray-500">viewer / viewer123</span>
               </div>
             </div>
           </div>

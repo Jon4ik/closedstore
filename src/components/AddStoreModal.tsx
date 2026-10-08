@@ -1,221 +1,111 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle, Palette } from 'lucide-react';
 import { parseDateInput } from '../utils/statusCalculator';
 
 export default function AddStoreModal() {
-  const { isAddModalOpen, closeAddModal, addProject, employees, projects, currentUser } = useStore();
-  
+  const { isAddModalOpen, closeAddModal, addProject, tus, projects, currentUser } = useStore();
   const [form, setForm] = useState({
-    storeNumber: '',
-    address: '',
-    city: '',
-    workType: 'Закрытие' as 'Закрытие' | 'Реконструкция',
-    closureDate: '',
-    demolitionDate: '',
-    installationDate: '',
-    osvDate: '',
-    techOpenDate: '',
-    responsibleId: employees[0]?.id || '',
-    comment: '',
+    storeNumber: '', address: '', city: '', workType: 'Закрытие' as 'Закрытие' | 'Реконструкция',
+    closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '',
+    tuId: tus[0]?.id || '', comment: '', rowColor: '',
   });
-  
   const [errors, setErrors] = useState<string[]>([]);
 
   if (!isAddModalOpen) return null;
 
+  const rowColors = ['', '#fee2e2', '#fef3c7', '#dcfce7', '#dbeafe', '#f3e8ff', '#fce7f3'];
+
   const validate = (): string[] => {
     const errs: string[] = [];
-    
     if (!form.storeNumber.trim()) errs.push('Укажите номер магазина');
     if (!form.address.trim()) errs.push('Укажите адрес');
-    
-    // Check duplicate
-    const exists = projects.find(p => p.storeNumber === form.storeNumber.trim() && !p.isDeleted);
-    if (exists) errs.push(`Магазин №${form.storeNumber} уже существует`);
-    
-    // Validate dates
-    const dates = [
-      { name: 'Закрытие', value: form.closureDate },
-      { name: 'Демонтаж', value: form.demolitionDate },
-      { name: 'Монтаж', value: form.installationDate },
-      { name: 'ОСВ', value: form.osvDate },
-      { name: 'Тех. открытие', value: form.techOpenDate },
-    ];
-    
-    let prevDate: Date | null = null;
-    for (const d of dates) {
-      if (d.value) {
-        const parsed = parseDateInput(d.value);
-        if (!parsed) {
-          errs.push(`Некорректная дата "${d.name}": ${d.value}`);
-        }
-      }
-    }
-    
+    if (projects.find(p => p.storeNumber === form.storeNumber.trim() && !p.isDeleted)) errs.push(`Магазин №${form.storeNumber} уже существует`);
     return errs;
   };
 
   const handleSubmit = () => {
     const errs = validate();
-    if (errs.length > 0) {
-      setErrors(errs);
-      return;
-    }
-    
+    if (errs.length > 0) { setErrors(errs); return; }
     setErrors([]);
-    
-    // Extract city from address
     const city = form.city || form.address.split(',')[0].trim();
-    
     addProject({
-      storeNumber: form.storeNumber.trim(),
-      address: form.address.trim(),
-      city,
-      workType: form.workType,
+      storeNumber: form.storeNumber.trim(), address: form.address.trim(), city, workType: form.workType,
       closureDate: form.closureDate ? parseDateInput(form.closureDate) : null,
       demolitionDate: form.demolitionDate ? parseDateInput(form.demolitionDate) : null,
       installationDate: form.installationDate ? parseDateInput(form.installationDate) : null,
-      osvDate: form.osvDate ? parseDateInput(form.osvDate) : null,
       techOpenDate: form.techOpenDate ? parseDateInput(form.techOpenDate) : null,
-      responsibleId: form.responsibleId,
-      comment: form.comment,
-      isDeleted: false,
-      manualStatus: null,
-      createdBy: currentUser?.id || 'system',
+      tuId: form.tuId, rowColor: form.rowColor, comment: form.comment,
+      isDeleted: false, manualStatus: null, createdBy: currentUser?.id || 'system',
     });
-    
-    // Reset form
-    setForm({
-      storeNumber: '',
-      address: '',
-      city: '',
-      workType: 'Закрытие',
-      closureDate: '',
-      demolitionDate: '',
-      installationDate: '',
-      osvDate: '',
-      techOpenDate: '',
-      responsibleId: employees[0]?.id || '',
-      comment: '',
-    });
-    
+    setForm({ storeNumber: '', address: '', city: '', workType: 'Закрытие', closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '', tuId: tus[0]?.id || '', comment: '', rowColor: '' });
     closeAddModal();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/40" onClick={closeAddModal} />
-      
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
           <h2 className="text-lg font-bold text-gray-900">Добавить объект</h2>
-          <button onClick={closeAddModal} className="p-2 hover:bg-gray-100 rounded-lg">
-            <X size={20} className="text-gray-500" />
-          </button>
+          <button onClick={closeAddModal} className="p-2 hover:bg-gray-100 rounded-lg"><X size={20} className="text-gray-500" /></button>
         </div>
-
         <div className="p-6 space-y-4">
           {errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <AlertCircle size={16} className="text-red-600" />
-                <span className="text-sm font-medium text-red-800">Ошибки:</span>
-              </div>
-              <ul className="list-disc list-inside text-sm text-red-700 space-y-0.5">
-                {errors.map((err, i) => <li key={i}>{err}</li>)}
-              </ul>
+              <div className="flex items-center gap-2 mb-1"><AlertCircle size={16} className="text-red-600" /><span className="text-sm font-medium text-red-800">Ошибки:</span></div>
+              <ul className="list-disc list-inside text-sm text-red-700 space-y-0.5">{errors.map((err, i) => <li key={i}>{err}</li>)}</ul>
             </div>
           )}
-
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Номер магазина <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.storeNumber}
-                onChange={e => setForm({ ...form, storeNumber: e.target.value })}
-                placeholder="864"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <label className="block text-xs font-medium text-gray-600 mb-1">Номер магазина <span className="text-red-500">*</span></label>
+              <input type="text" value={form.storeNumber} onChange={e => setForm({ ...form, storeNumber: e.target.value })} placeholder="864" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Тип работ <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={form.workType}
-                onChange={e => setForm({ ...form, workType: e.target.value as any })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
+              <label className="block text-xs font-medium text-gray-600 mb-1">Тип работ <span className="text-red-500">*</span></label>
+              <select value={form.workType} onChange={e => setForm({ ...form, workType: e.target.value as any })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="Закрытие">Закрытие</option>
                 <option value="Реконструкция">Реконструкция</option>
               </select>
             </div>
           </div>
-
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Адрес <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.address}
-              onChange={e => setForm({ ...form, address: e.target.value })}
-              placeholder="Ульяновск, ул. Рябикова, д. 60А"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <label className="block text-xs font-medium text-gray-600 mb-1">Адрес <span className="text-red-500">*</span></label>
+            <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="Ульяновск, ул. Рябикова, д. 60А" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
-
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Ответственный</label>
-            <select
-              value={form.responsibleId}
-              onChange={e => setForm({ ...form, responsibleId: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {employees.filter(e => e.isActive).map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.fullName}</option>
-              ))}
+            <label className="block text-xs font-medium text-gray-600 mb-1">ТУ</label>
+            <select value={form.tuId} onChange={e => setForm({ ...form, tuId: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              {tus.filter(t => t.isActive).map(t => <option key={t.id} value={t.id}>{t.fullName}</option>)}
             </select>
           </div>
-
           <div className="border-t border-gray-100 pt-4">
             <p className="text-xs font-medium text-gray-500 mb-3">Даты этапов (формат: ДД.ММ.ГГГГ)</p>
             <div className="grid grid-cols-1 gap-3">
               <DateInput label="Закрытие для покупателей" value={form.closureDate} onChange={v => setForm({ ...form, closureDate: v })} />
               <DateInput label="Демонтаж" value={form.demolitionDate} onChange={v => setForm({ ...form, demolitionDate: v })} />
               <DateInput label="Монтаж" value={form.installationDate} onChange={v => setForm({ ...form, installationDate: v })} />
-              <DateInput label="ОСВ магазина" value={form.osvDate} onChange={v => setForm({ ...form, osvDate: v })} />
               <DateInput label="Техническое открытие" value={form.techOpenDate} onChange={v => setForm({ ...form, techOpenDate: v })} />
             </div>
           </div>
-
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Цвет строки</label>
+            <div className="flex items-center gap-1">
+              {rowColors.map(color => (
+                <button key={color || 'none'} onClick={() => setForm({ ...form, rowColor: color })}
+                  className={`w-7 h-7 rounded border-2 ${form.rowColor === color ? 'border-blue-500' : 'border-gray-200'}`}
+                  style={{ backgroundColor: color || '#fff' }} title={color || 'Без цвета'} />
+              ))}
+            </div>
+          </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Комментарий</label>
-            <textarea
-              value={form.comment}
-              onChange={e => setForm({ ...form, comment: e.target.value })}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            />
+            <textarea value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} rows={2} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
           </div>
-
           <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-            <button
-              onClick={handleSubmit}
-              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-            >
-              Добавить объект
-            </button>
-            <button
-              onClick={closeAddModal}
-              className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
-            >
-              Отмена
-            </button>
+            <button onClick={handleSubmit} className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Добавить объект</button>
+            <button onClick={closeAddModal} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Отмена</button>
           </div>
         </div>
       </div>
@@ -227,13 +117,7 @@ function DateInput({ label, value, onChange }: { label: string; value: string; o
   return (
     <div className="flex items-center gap-3">
       <label className="text-sm text-gray-600 w-48 flex-shrink-0">{label}</label>
-      <input
-        type="text"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder="ДД.ММ.ГГГГ"
-        className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+      <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder="ДД.ММ.ГГГГ" className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
     </div>
   );
 }

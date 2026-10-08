@@ -13,20 +13,14 @@ export default function App() {
   const { currentUser } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
-  if (!currentUser) {
-    return <LoginPage />;
-  }
+  if (!currentUser) return <LoginPage />;
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'table':
-        return <StoreTable />;
-      case 'calendar':
-        return <CalendarView />;
-      default:
-        return <Dashboard />;
+      case 'dashboard': return <Dashboard />;
+      case 'table': return <StoreTable />;
+      case 'calendar': return <CalendarView />;
+      default: return <Dashboard />;
     }
   };
 

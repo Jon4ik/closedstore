@@ -124,10 +124,9 @@ export async function parseExcelFile(file: File): Promise<ImportResult> {
           record.closureDate = parseExcelDate(row[columnMap.closureDate]);
           record.demolitionDate = parseExcelDate(row[columnMap.demolitionDate]);
           record.installationDate = parseExcelDate(row[columnMap.installationDate]);
-          record.osvDate = parseExcelDate(row[columnMap.osvDate]);
           record.techOpenDate = parseExcelDate(row[columnMap.techOpenDate]);
 
-          // Responsible
+          // TU
           record.responsibleName = String(row[columnMap.responsible] || '').trim();
           record.comment = String(row[columnMap.comment] || '').trim();
 
@@ -153,7 +152,6 @@ function mapColumns(headers: string[]): { [key: string]: number } {
     closureDate: -1,
     demolitionDate: -1,
     installationDate: -1,
-    osvDate: -1,
     techOpenDate: -1,
     responsible: -1,
     comment: -1,
@@ -173,8 +171,6 @@ function mapColumns(headers: string[]): { [key: string]: number } {
       map.demolitionDate = idx;
     } else if (lower.includes('монтаж') || lower.includes('монт.')) {
       map.installationDate = idx;
-    } else if (lower.includes('осв') || lower.includes('открытие ос')) {
-      map.osvDate = idx;
     } else if (lower.includes('тех') || lower.includes('открыт')) {
       map.techOpenDate = idx;
     } else if (lower.includes('ответ') || lower.includes('сотруд')) {

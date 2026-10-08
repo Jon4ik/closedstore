@@ -7,11 +7,29 @@ export type ProjectStatus =
   | 'Закрыт для покупателей'
   | 'Демонтаж'
   | 'Монтаж'
-  | 'ОСВ магазина'
   | 'Техническое открытие'
   | 'Завершено'
   | 'Просрочено'
+  | 'Отменено'
   | 'Удален';
+
+export interface TU {
+  id: string;
+  fullName: string;
+  position: string;
+  phone: string;
+  email: string;
+  isActive: boolean;
+}
+
+export interface Comment {
+  id: string;
+  storeId: string;
+  userId: string;
+  userName: string;
+  text: string;
+  createdAt: string;
+}
 
 export interface StoreProject {
   id: string;
@@ -22,9 +40,9 @@ export interface StoreProject {
   closureDate: string | null;
   demolitionDate: string | null;
   installationDate: string | null;
-  osvDate: string | null;
   techOpenDate: string | null;
-  responsibleId: string;
+  tuId: string;
+  rowColor: string;
   comment: string;
   status: ProjectStatus;
   manualStatus: ProjectStatus | null;
@@ -34,22 +52,17 @@ export interface StoreProject {
   createdBy: string;
 }
 
-export interface Employee {
-  id: string;
-  fullName: string;
-  position: string;
-  isActive: boolean;
-}
-
 export interface AuditLogEntry {
   id: string;
-  storeId: string;
+  storeId: string | null;
   userId: string;
   userName: string;
   timestamp: string;
+  action: string;
   field: string;
   oldValue: string;
   newValue: string;
+  details: string;
 }
 
 export interface Notification {
@@ -62,12 +75,22 @@ export interface Notification {
   read: boolean;
 }
 
-export interface User {
+export interface SystemUser {
   id: string;
   username: string;
   password: string;
   fullName: string;
-  role: 'admin' | 'manager' | 'user';
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+  isSystem: boolean;
 }
 
 export interface StageInfo {
@@ -84,8 +107,17 @@ export interface FilterState {
   month: string;
   workType: WorkType | '';
   status: ProjectStatus | '';
-  responsibleId: string;
+  tuId: string;
   city: string;
   showOverdue: boolean;
   showUpcoming: boolean;
+}
+
+export interface DatabaseConfig {
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  password: string;
+  ssl: boolean;
 }
