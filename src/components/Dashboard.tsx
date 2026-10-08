@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
 import { calculateProjectStatus, getNearestEvent, formatDate } from '../utils/statusCalculator';
-import { AlertTriangle, CheckCircle2, Clock, Package, CalendarClock, TrendingUp, Store, Wrench, Ban, DoorOpen } from 'lucide-react';
+import { CheckCircle2, Clock, Package, TrendingUp, Store, Wrench, Ban, DoorOpen } from 'lucide-react';
 
 export default function Dashboard() {
   const { getDashboardStats, getUpcomingEvents, projects, openCard, tus } = useStore();
@@ -15,11 +15,9 @@ export default function Dashboard() {
     { label: 'Закрытий', value: stats.closures, icon: Package, color: 'bg-orange-50 text-orange-700' },
     { label: 'Реконструкций', value: stats.reconstructions, icon: Wrench, color: 'bg-purple-50 text-purple-700' },
     { label: 'Открытий', value: stats.openings, icon: DoorOpen, color: 'bg-green-50 text-green-700' },
-    { label: 'В работе', value: stats.inProgress, icon: TrendingUp, color: 'bg-green-50 text-green-700' },
-    { label: 'Просрочено', value: stats.overdue, icon: AlertTriangle, color: 'bg-red-50 text-red-700' },
+    { label: 'В работе', value: stats.inProgress, icon: TrendingUp, color: 'bg-indigo-50 text-indigo-700' },
     { label: 'Завершено', value: stats.completed, icon: CheckCircle2, color: 'bg-emerald-50 text-emerald-700' },
     { label: 'Отменено', value: stats.cancelled, icon: Ban, color: 'bg-gray-100 text-gray-700' },
-    { label: 'Ближайшие 7 дней', value: stats.upcoming7days, icon: CalendarClock, color: 'bg-yellow-50 text-yellow-700' },
   ];
 
   const groupedEvents: { [key: string]: typeof upcomingEvents } = {};
@@ -34,7 +32,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {statCards.map((card, idx) => (
           <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4">
             <div className={`w-9 h-9 rounded-lg ${card.color} flex items-center justify-center mb-3`}><card.icon size={18} /></div>
@@ -44,6 +43,7 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Upcoming Events - компактный блок */}
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="p-4 border-b border-gray-100">
           <h3 className="font-semibold text-gray-900 flex items-center gap-2"><Clock size={18} className="text-blue-600" />Ближайшие события</h3>
@@ -52,22 +52,29 @@ export default function Dashboard() {
           {Object.keys(groupedEvents).length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-4">Нет предстоящих событий</p>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(groupedEvents).map(([label, events]) => (
-                <div key={label}>
+                <div key={label} className="bg-gray-50 rounded-lg p-3">
                   <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${label === 'Сегодня' ? 'text-red-600' : label === 'Завтра' ? 'text-orange-600' : 'text-gray-500'}`}>{label}</p>
-                  <div className="space-y-2">
-                    {events.map((event, idx) => (
-                      <button key={idx} onClick={() => openCard(event.projectId)} className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-gray-50 text-left transition-colors">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Магазин №{event.storeNumber}</p>
-                          <p className="text-xs text-gray-500">{event.stage}</p>
-                        </div>
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${event.daysUntil === 0 ? 'bg-red-100 text-red-700' : event.daysUntil <= 3 ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
-                          {event.daysUntil === 0 ? 'Сегодня' : `через ${event.daysUntil} дн.`}
-                        </span>
-                      </button>
-                    ))}
+                  <div className="space-y-1.5">
+                    {events.map((event, idx) => {
+                      const project = projects.find(p => p.id === event.projectId);
+                      return (
+                        <button key={idx} onClick={() => openCard(event.projectId)} className="w-full flex items-center justify-between p-2 rounded hover:bg-white text-left transition-colors">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">№{event.storeNumber}</p>
+                            <p className="text-xs text-gray-500 truncate">{event.stage}</p>
+                          </div>
+                          {project && (
+                            <span className={`text-xs px-1.5 py-0.5 rounded ml-2 flex-shrink-0 ${
+                              project.workType === 'Закрытие' ? 'bg-orange-100 text-orange-700' :
+                              project.workType === 'Открытие' ? 'bg-green-100 text-green-700' :
+                              'bg-purple-100 text-purple-700'
+                            }`}>{project.workType}</span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -76,6 +83,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* All projects quick view */}
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="p-4 border-b border-gray-100"><h3 className="font-semibold text-gray-900">Все активные объекты</h3></div>
         <div className="overflow-x-auto">
@@ -99,8 +107,8 @@ export default function Dashboard() {
                     <td className="px-4 py-3 font-medium">{project.storeNumber}</td>
                     <td className="px-4 py-3 text-gray-600 max-w-[200px] truncate">{project.address}</td>
                     <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${
-                      project.workType === 'Закрытие' ? 'bg-orange-100 text-orange-700' : 
-                      project.workType === 'Открытие' ? 'bg-green-100 text-green-700' : 
+                      project.workType === 'Закрытие' ? 'bg-orange-100 text-orange-700' :
+                      project.workType === 'Открытие' ? 'bg-green-100 text-green-700' :
                       'bg-purple-100 text-purple-700'
                     }`}>{project.workType}</span></td>
                     <td className="px-4 py-3"><StatusBadge status={status} /></td>
@@ -122,7 +130,7 @@ function StatusBadge({ status }: { status: string }) {
     'Запланирован': 'bg-blue-100 text-blue-700', 'Закрыт для покупателей': 'bg-yellow-100 text-yellow-700',
     'Демонтаж': 'bg-orange-100 text-orange-700', 'Монтаж': 'bg-purple-100 text-purple-700',
     'Техническое открытие': 'bg-cyan-100 text-cyan-700', 'Завершено': 'bg-green-100 text-green-700',
-    'Просрочено': 'bg-red-100 text-red-700', 'Отменено': 'bg-gray-200 text-gray-700',
+    'Отменено': 'bg-gray-200 text-gray-700',
   };
   return <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colorMap[status] || 'bg-gray-100 text-gray-700'}`}>{status}</span>;
 }

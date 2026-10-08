@@ -20,21 +20,21 @@ export const seedRoles: Role[] = [
     id: 'role-admin', 
     name: 'Администратор', 
     description: 'Полный доступ ко всем функциям системы',
-    permissions: ['view', 'create', 'edit', 'delete', 'import', 'export', 'manage_users', 'manage_roles', 'manage_tus', 'view_audit', 'settings'],
+    permissions: ['view_closures', 'create_closures', 'edit_closures', 'delete_closures', 'view_openings', 'create_openings', 'edit_openings', 'delete_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'delete_comments', 'view_users', 'manage_users', 'view_roles', 'manage_roles', 'view_tus', 'manage_tus', 'view_audit', 'clear_audit', 'settings'],
     isSystem: true 
   },
   { 
     id: 'role-manager', 
     name: 'Менеджер', 
     description: 'Управление объектами и импорт/экспорт',
-    permissions: ['view', 'create', 'edit', 'import', 'export', 'add_comments'],
+    permissions: ['view_closures', 'create_closures', 'edit_closures', 'view_openings', 'create_openings', 'edit_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'view_tus'],
     isSystem: true 
   },
   { 
     id: 'role-viewer', 
     name: 'Наблюдатель', 
     description: 'Только просмотр данных',
-    permissions: ['view'],
+    permissions: ['view_closures', 'view_openings', 'view_calendar', 'view_dashboard', 'view_comments', 'view_tus'],
     isSystem: true 
   },
 ];

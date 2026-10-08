@@ -55,7 +55,7 @@ export default function StoreCard() {
     'Запланирован': 'bg-blue-100 text-blue-800 border-blue-200', 'Закрыт для покупателей': 'bg-yellow-100 text-yellow-800 border-yellow-200',
     'Демонтаж': 'bg-orange-100 text-orange-800 border-orange-200', 'Монтаж': 'bg-purple-100 text-purple-800 border-purple-200',
     'Техническое открытие': 'bg-cyan-100 text-cyan-800 border-cyan-200', 'Завершено': 'bg-green-100 text-green-800 border-green-200',
-    'Просрочено': 'bg-red-100 text-red-800 border-red-200', 'Отменено': 'bg-gray-200 text-gray-800 border-gray-300',
+    'Отменено': 'bg-gray-200 text-gray-800 border-gray-300',
   };
 
   return (
@@ -68,7 +68,9 @@ export default function StoreCard() {
             <p className="text-sm text-gray-500 mt-0.5">{project.workType}</p>
           </div>
           <div className="flex items-center gap-2">
-            {!isEditing && hasPermission('edit') && (
+            {!isEditing && (
+              (project.workType === 'Открытие' ? hasPermission('edit_openings') : hasPermission('edit_closures'))
+            ) && (
               <button onClick={handleStartEdit} className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100">
                 <Edit3 size={14} /> Редактировать
               </button>
@@ -207,6 +209,7 @@ export default function StoreCard() {
                 <option value="Закрыт для покупателей">Закрыт для покупателей</option>
                 <option value="Демонтаж">Демонтаж</option>
                 <option value="Монтаж">Монтаж</option>
+                <option value="Открытие">Открытие</option>
                 <option value="Техническое открытие">Техническое открытие</option>
                 <option value="Завершено">Завершено</option>
                 <option value="Отменено">Отменено</option>

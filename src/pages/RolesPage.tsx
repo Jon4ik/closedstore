@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { Plus, Edit2, Trash2, Shield, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check } from 'lucide-react';
 
 export default function RolesPage() {
   const { roles, users, addRole, updateRole, deleteRole, hasPermission } = useStore();
@@ -14,13 +14,103 @@ export default function RolesPage() {
     return <div className="text-center py-12 text-gray-500">Нет доступа к этой странице</div>;
   }
 
-  const allPermissions = ['view', 'create', 'edit', 'delete', 'import', 'export', 'add_comments', 'manage_users', 'manage_roles', 'manage_tus', 'view_audit', 'settings'];
-  const permLabels: Record<string, string> = {
-    view: 'Просмотр', create: 'Создание', edit: 'Редактирование', delete: 'Удаление',
-    import: 'Импорт', export: 'Экспорт', add_comments: 'Комментарии',
-    manage_users: 'Управление пользователями', manage_roles: 'Управление ролями',
-    manage_tus: 'Управление ТУ', view_audit: 'Просмотр аудита', settings: 'Настройки',
-  };
+  // Модули и их права
+  const modules = [
+    {
+      name: 'Объекты (Закрытия/Реконструкции)',
+      key: 'closures',
+      permissions: [
+        { key: 'view_closures', label: 'Просмотр' },
+        { key: 'create_closures', label: 'Создание' },
+        { key: 'edit_closures', label: 'Редактирование' },
+        { key: 'delete_closures', label: 'Удаление' },
+      ]
+    },
+    {
+      name: 'Объекты (Открытия)',
+      key: 'openings',
+      permissions: [
+        { key: 'view_openings', label: 'Просмотр' },
+        { key: 'create_openings', label: 'Создание' },
+        { key: 'edit_openings', label: 'Редактирование' },
+        { key: 'delete_openings', label: 'Удаление' },
+      ]
+    },
+    {
+      name: 'Календарь',
+      key: 'calendar',
+      permissions: [
+        { key: 'view_calendar', label: 'Просмотр' },
+      ]
+    },
+    {
+      name: 'Dashboard',
+      key: 'dashboard',
+      permissions: [
+        { key: 'view_dashboard', label: 'Просмотр' },
+      ]
+    },
+    {
+      name: 'Импорт/Экспорт',
+      key: 'import_export',
+      permissions: [
+        { key: 'import', label: 'Импорт из Excel' },
+        { key: 'export', label: 'Экспорт в Excel/CSV' },
+      ]
+    },
+    {
+      name: 'Комментарии',
+      key: 'comments',
+      permissions: [
+        { key: 'view_comments', label: 'Просмотр' },
+        { key: 'add_comments', label: 'Добавление' },
+        { key: 'delete_comments', label: 'Удаление' },
+      ]
+    },
+    {
+      name: 'Пользователи',
+      key: 'users',
+      permissions: [
+        { key: 'view_users', label: 'Просмотр' },
+        { key: 'manage_users', label: 'Управление (создание, редактирование, удаление)' },
+      ]
+    },
+    {
+      name: 'Роли',
+      key: 'roles',
+      permissions: [
+        { key: 'view_roles', label: 'Просмотр' },
+        { key: 'manage_roles', label: 'Управление (создание, редактирование, удаление)' },
+      ]
+    },
+    {
+      name: 'Справочник ТУ',
+      key: 'tus',
+      permissions: [
+        { key: 'view_tus', label: 'Просмотр' },
+        { key: 'manage_tus', label: 'Управление (создание, редактирование, удаление)' },
+      ]
+    },
+    {
+      name: 'Аудит',
+      key: 'audit',
+      permissions: [
+        { key: 'view_audit', label: 'Просмотр журнала' },
+        { key: 'clear_audit', label: 'Очистка журнала' },
+      ]
+    },
+    {
+      name: 'Настройки',
+      key: 'settings',
+      permissions: [
+        { key: 'settings', label: 'Доступ к настройкам системы' },
+      ]
+    },
+  ];
+
+  const allPermissions = modules.flatMap(m => m.permissions.map(p => p.key));
+  const permLabels: Record<string, string> = {};
+  modules.forEach(m => m.permissions.forEach(p => { permLabels[p.key] = p.label; }));
 
   const handleAdd = () => {
     if (!newRole.name) return;
@@ -56,14 +146,63 @@ export default function RolesPage() {
     }
   };
 
+  const toggleModulePermissions = (modulePerms: string[], target: 'new' | 'edit') => {
+    if (target === 'new') {
+      const allSelected = modulePerms.every(p => newRole.permissions.includes(p));
+      if (allSelected) {
+        setNewRole(prev => ({ ...prev, permissions: prev.permissions.filter(p => !modulePerms.includes(p)) }));
+      } else {
+        setNewRole(prev => ({ ...prev, permissions: [...new Set([...prev.permissions, ...modulePerms])] }));
+      }
+    } else if (editData) {
+      const allSelected = modulePerms.every(p => editData.permissions.includes(p));
+      if (allSelected) {
+        setEditData({ ...editData, permissions: editData.permissions.filter((p: string) => !modulePerms.includes(p)) });
+      } else {
+        setEditData({ ...editData, permissions: [...new Set([...editData.permissions, ...modulePerms])] });
+      }
+    }
+  };
+
   const getUserCount = (roleId: string) => users.filter(u => u.role === roleId).length;
+
+  const renderPermissionsForm = (target: 'new' | 'edit') => (
+    <div className="space-y-3">
+      {modules.map(module => {
+        const modulePermKeys = module.permissions.map(p => p.key);
+        const currentPerms = target === 'new' ? newRole.permissions : (editData?.permissions || []);
+        const allSelected = modulePermKeys.every(p => currentPerms.includes(p));
+        const someSelected = modulePermKeys.some(p => currentPerms.includes(p));
+        
+        return (
+          <div key={module.key} className="border border-gray-200 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={allSelected} onChange={() => toggleModulePermissions(modulePermKeys, target)} className="w-4 h-4 text-blue-600 rounded" />
+                <span className="text-sm font-medium text-gray-900">{module.name}</span>
+                {someSelected && !allSelected && <span className="text-xs text-gray-400">(частично)</span>}
+              </label>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 ml-6">
+              {module.permissions.map(perm => (
+                <label key={perm.key} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded hover:bg-gray-50">
+                  <input type="checkbox" checked={currentPerms.includes(perm.key)} onChange={() => togglePermission(perm.key, target)} className="w-3.5 h-3.5 text-blue-600 rounded" />
+                  <span className="text-xs text-gray-700">{perm.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Роли и права доступа</h1>
-          <p className="text-sm text-gray-500 mt-1">Настройка ролей и разрешений для пользователей</p>
+          <p className="text-sm text-gray-500 mt-1">Настройка прав для каждого модуля системы</p>
         </div>
         <button onClick={() => setShowAddForm(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
           <Plus size={16} /> Добавить роль
@@ -84,15 +223,8 @@ export default function RolesPage() {
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-xs font-medium text-gray-500 mb-2">Разрешения:</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {allPermissions.map(perm => (
-                <label key={perm} className="flex items-center gap-2 text-sm cursor-pointer p-2 rounded hover:bg-gray-50">
-                  <input type="checkbox" checked={newRole.permissions.includes(perm)} onChange={() => togglePermission(perm, 'new')} className="w-4 h-4 text-blue-600 rounded" />
-                  {permLabels[perm]}
-                </label>
-              ))}
-            </div>
+            <label className="block text-xs font-medium text-gray-500 mb-2">Разрешения по модулям:</label>
+            {renderPermissionsForm('new')}
           </div>
           <div className="flex items-center gap-2">
             <button onClick={handleAdd} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Создать</button>
@@ -120,15 +252,8 @@ export default function RolesPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-2">Разрешения:</label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {allPermissions.map(perm => (
-                        <label key={perm} className="flex items-center gap-2 text-sm cursor-pointer p-2 rounded hover:bg-gray-50">
-                          <input type="checkbox" checked={editData.permissions.includes(perm)} onChange={() => togglePermission(perm, 'edit')} className="w-4 h-4 text-blue-600 rounded" />
-                          {permLabels[perm]}
-                        </label>
-                      ))}
-                    </div>
+                    <label className="block text-xs font-medium text-gray-500 mb-2">Разрешения по модулям:</label>
+                    {renderPermissionsForm('edit')}
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={saveEdit} className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"><Check size={14} />Сохранить</button>
@@ -158,8 +283,19 @@ export default function RolesPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    {role.permissions.map(p => <span key={p} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{permLabels[p] || p}</span>)}
+                  <div className="space-y-2">
+                    {modules.map(module => {
+                      const modulePerms = role.permissions.filter(p => module.permissions.map(mp => mp.key).includes(p));
+                      if (modulePerms.length === 0) return null;
+                      return (
+                        <div key={module.key}>
+                          <p className="text-xs font-medium text-gray-500 mb-1">{module.name}:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {modulePerms.map(p => <span key={p} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{permLabels[p] || p}</span>)}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </>
               )}

@@ -13,7 +13,7 @@ export default function Filters() {
     months.push({ value: `${d.getMonth() + 1}-${d.getFullYear()}`, label: `${monthNames[d.getMonth()]} ${d.getFullYear()}` });
   }
 
-  const hasActiveFilters = filters.workType || filters.status || filters.tuId || filters.city || filters.month || filters.showOverdue || filters.showUpcoming;
+  const hasActiveFilters = filters.workType || filters.status || filters.tuId || filters.city || filters.month || filters.showUpcoming;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -50,7 +50,6 @@ export default function Filters() {
             <option value="Монтаж">Монтаж</option>
             <option value="Техническое открытие">Техническое открытие</option>
             <option value="Завершено">Завершено</option>
-            <option value="Просрочено">Просрочено</option>
             <option value="Отменено">Отменено</option>
           </select>
         </div>
@@ -68,11 +67,7 @@ export default function Filters() {
             {cities.map(city => <option key={city} value={city}>{city}</option>)}
           </select>
         </div>
-        <div className="flex items-end gap-3">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={filters.showOverdue} onChange={e => setFilters({ showOverdue: e.target.checked })} className="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500" />
-            <span className="text-sm text-gray-700">Просроченные</span>
-          </label>
+        <div className="flex items-end">
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={filters.showUpcoming} onChange={e => setFilters({ showUpcoming: e.target.checked })} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
             <span className="text-sm text-gray-700">Ближайшие 7 дней</span>

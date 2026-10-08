@@ -84,8 +84,12 @@ export default function AddStoreModal() {
           <div className="border-t border-gray-100 pt-4">
             <p className="text-xs font-medium text-gray-500 mb-3">Даты этапов (формат: ДД.ММ.ГГГГ)</p>
             <div className="grid grid-cols-1 gap-3">
-              <DateInput label="Закрытие для покупателей" value={form.closureDate} onChange={v => setForm({ ...form, closureDate: v })} />
-              <DateInput label="Демонтаж" value={form.demolitionDate} onChange={v => setForm({ ...form, demolitionDate: v })} />
+              {form.workType !== 'Открытие' && (
+                <>
+                  <DateInput label="Закрытие для покупателей" value={form.closureDate} onChange={v => setForm({ ...form, closureDate: v })} />
+                  <DateInput label="Демонтаж" value={form.demolitionDate} onChange={v => setForm({ ...form, demolitionDate: v })} />
+                </>
+              )}
               <DateInput label="Монтаж" value={form.installationDate} onChange={v => setForm({ ...form, installationDate: v })} />
               <DateInput label="Техническое открытие" value={form.techOpenDate} onChange={v => setForm({ ...form, techOpenDate: v })} />
             </div>

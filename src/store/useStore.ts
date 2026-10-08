@@ -79,14 +79,14 @@ interface AppState {
 
   // Getters
   getFilteredProjects: () => StoreProject[];
-  getDashboardStats: () => { total: number; closures: number; reconstructions: number; openings: number; inProgress: number; overdue: number; completed: number; cancelled: number; upcoming7days: number; };
+  getDashboardStats: () => { total: number; closures: number; reconstructions: number; openings: number; inProgress: number; completed: number; cancelled: number; upcoming7days: number; };
   getNotifications: () => Notification[];
   getUpcomingEvents: () => { storeNumber: string; stage: string; date: Date; daysUntil: number; projectId: string }[];
   getProjectComments: (storeId: string) => Comment[];
 }
 
 const defaultFilters: FilterState = {
-  search: '', month: '', workType: '', status: '', tuId: '', city: '', showOverdue: false, showUpcoming: false,
+  search: '', month: '', workType: '', status: '', tuId: '', city: '', showUpcoming: false,
 };
 
 function parseDate(dateStr: string | null): Date | null {
@@ -511,7 +511,6 @@ export const useStore = create<AppState>((set, get) => {
           });
         });
       }
-      if (filters.showOverdue) projects = projects.filter(p => calculateProjectStatus(p) === 'Просрочено');
       if (filters.showUpcoming) {
         projects = projects.filter(p => {
           const event = getNearestEvent(p);
@@ -536,8 +535,7 @@ export const useStore = create<AppState>((set, get) => {
         closures: projects.filter(p => p.workType === 'Закрытие').length,
         reconstructions: projects.filter(p => p.workType === 'Реконструкция').length,
         openings: projects.filter(p => p.workType === 'Открытие').length,
-        inProgress: projects.filter(p => { const s = calculateProjectStatus(p); return s !== 'Завершено' && s !== 'Просрочено' && s !== 'Запланирован' && s !== 'Отменено'; }).length,
-        overdue: projects.filter(p => calculateProjectStatus(p) === 'Просрочено').length,
+        inProgress: projects.filter(p => { const s = calculateProjectStatus(p); return s !== 'Завершено' && s !== 'Запланирован' && s !== 'Отменено'; }).length,
         completed: projects.filter(p => calculateProjectStatus(p) === 'Завершено').length,
         cancelled: projects.filter(p => calculateProjectStatus(p) === 'Отменено').length,
         upcoming7days: projects.filter(p => { const e = getNearestEvent(p); return e && e.daysUntil <= 7 && e.daysUntil >= 0; }).length,
@@ -549,9 +547,6 @@ export const useStore = create<AppState>((set, get) => {
       const notifications: Notification[] = [];
       projects.forEach(p => {
         const event = getNearestEvent(p);
-        if (calculateProjectStatus(p) === 'Просрочено') {
-          notifications.push({ id: `notif-overdue-${p.id}`, storeId: p.id, storeNumber: p.storeNumber, message: 'Объект просрочен', type: 'danger', date: new Date().toISOString(), read: false });
-        }
         if (event) {
           if (event.daysUntil === 0) notifications.push({ id: `notif-today-${p.id}`, storeId: p.id, storeNumber: p.storeNumber, message: `Сегодня: ${event.name}`, type: 'warning', date: new Date().toISOString(), read: false });
           else if (event.daysUntil === 1) notifications.push({ id: `notif-1d-${p.id}`, storeId: p.id, storeNumber: p.storeNumber, message: `Завтра: ${event.name}`, type: 'warning', date: new Date().toISOString(), read: false });

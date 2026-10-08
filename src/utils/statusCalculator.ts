@@ -1,4 +1,4 @@
-import { StoreProject, ProjectStatus, StageInfo, StageStatus } from '../types';
+import { StoreProject, ProjectStatus, StageInfo, StageStatus, WorkType } from '../types';
 import { isAfter, isBefore, differenceInDays, startOfDay } from 'date-fns';
 
 export function parseDate(dateStr: string | null): Date | null {
@@ -45,15 +45,39 @@ export function parseDateInput(dateStr: string): string | null {
   }
 }
 
+// Возвращает этапы в зависимости от типа работ
+export function getStagesByWorkType(workType: WorkType): { name: string; dateKey: string }[] {
+  switch (workType) {
+    case 'Закрытие':
+      return [
+        { name: 'Закрыт для покупателей', dateKey: 'closureDate' },
+        { name: 'Демонтаж', dateKey: 'demolitionDate' },
+      ];
+    case 'Реконструкция':
+      return [
+        { name: 'Закрыт для покупателей', dateKey: 'closureDate' },
+        { name: 'Демонтаж', dateKey: 'demolitionDate' },
+        { name: 'Монтаж', dateKey: 'installationDate' },
+        { name: 'Техническое открытие', dateKey: 'techOpenDate' },
+      ];
+    case 'Открытие':
+      return [
+        { name: 'Монтаж', dateKey: 'installationDate' },
+        { name: 'Техническое открытие', dateKey: 'techOpenDate' },
+      ];
+    default:
+      return [];
+  }
+}
+
 export function calculateStages(project: StoreProject): StageInfo[] {
   const today = startOfDay(new Date());
+  const stageDefs = getStagesByWorkType(project.workType);
   
-  const stages: { name: string; date: string | null }[] = [
-    { name: 'Закрыт для покупателей', date: project.closureDate },
-    { name: 'Демонтаж', date: project.demolitionDate },
-    { name: 'Монтаж', date: project.installationDate },
-    { name: 'Техническое открытие', date: project.techOpenDate },
-  ];
+  const stages: { name: string; date: string | null }[] = stageDefs.map(s => ({
+    name: s.name,
+    date: (project as any)[s.dateKey] || null,
+  }));
 
   let foundCurrent = false;
   
@@ -67,19 +91,8 @@ export function calculateStages(project: StoreProject): StageInfo[] {
     if (!date) {
       status = 'not_started';
     } else if (isBefore(date, today)) {
-      const nextStage = stages[index + 1];
-      const nextDate = nextStage ? parseDate(nextStage.date) : null;
-      
       if (!foundCurrent) {
-        if (nextDate && isAfter(nextDate, today)) {
-          status = 'completed';
-        } else if (!nextDate && index === stages.length - 1) {
-          status = 'completed';
-        } else if (!nextDate) {
-          status = 'completed';
-        } else {
-          status = 'completed';
-        }
+        status = 'completed';
       } else {
         status = 'not_started';
       }
@@ -120,11 +133,8 @@ export function calculateProjectStatus(project: StoreProject): ProjectStatus {
   const today = startOfDay(new Date());
   const stages = calculateStages(project);
 
-  const hasOverdue = stages.some(s => s.isOverdue);
-  if (hasOverdue) return 'Просрочено';
-
-  const allCompleted = stages.every(s => s.status === 'completed');
-  if (allCompleted && project.techOpenDate) return 'Завершено';
+  const allCompleted = stages.length > 0 && stages.every(s => s.status === 'completed');
+  if (allCompleted) return 'Завершено';
 
   const currentStage = stages.find(s => s.status === 'current');
   if (currentStage) {
@@ -136,14 +146,11 @@ export function calculateProjectStatus(project: StoreProject): ProjectStatus {
     }
   }
 
-  const firstPlanned = stages.find(s => s.status === 'planned' || s.status === 'not_started');
-  if (firstPlanned && !currentStage) {
-    const hasAnyDate = project.closureDate || project.demolitionDate;
-    if (hasAnyDate) {
-      const closureDate = parseDate(project.closureDate);
-      if (closureDate && isAfter(closureDate, today)) {
-        return 'Запланирован';
-      }
+  // Для открытия - если монтаж в будущем
+  if (project.workType === 'Открытие') {
+    if (project.installationDate) {
+      const d = parseDate(project.installationDate);
+      if (d && isAfter(d, today)) return 'Запланирован';
     }
     return 'Запланирован';
   }
@@ -155,22 +162,14 @@ export function getNearestEvent(project: StoreProject): { name: string; date: Da
   const today = startOfDay(new Date());
   const dates: { name: string; date: Date }[] = [];
 
-  if (project.closureDate) {
-    const d = parseDate(project.closureDate);
-    if (d && !isBefore(d, today)) dates.push({ name: 'Закрытие', date: d });
-  }
-  if (project.demolitionDate) {
-    const d = parseDate(project.demolitionDate);
-    if (d && !isBefore(d, today)) dates.push({ name: 'Демонтаж', date: d });
-  }
-  if (project.installationDate) {
-    const d = parseDate(project.installationDate);
-    if (d && !isBefore(d, today)) dates.push({ name: 'Монтаж', date: d });
-  }
-  if (project.techOpenDate) {
-    const d = parseDate(project.techOpenDate);
-    if (d && !isBefore(d, today)) dates.push({ name: 'Тех. открытие', date: d });
-  }
+  const stageDefs = getStagesByWorkType(project.workType);
+  stageDefs.forEach(s => {
+    const dateStr = (project as any)[s.dateKey];
+    if (dateStr) {
+      const d = parseDate(dateStr);
+      if (d && !isBefore(d, today)) dates.push({ name: s.name, date: d });
+    }
+  });
 
   if (dates.length === 0) return null;
   dates.sort((a, b) => a.date.getTime() - b.date.getTime());

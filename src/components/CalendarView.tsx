@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore';
-import { calculateProjectStatus, parseDate, formatDate } from '../utils/statusCalculator';
+import { calculateProjectStatus, parseDate, formatDate, getStagesByWorkType } from '../utils/statusCalculator';
 import { ChevronLeft, ChevronRight, List } from 'lucide-react';
 
 type ViewMode = 'month' | 'week' | 'list';
@@ -15,16 +15,14 @@ export default function CalendarView() {
     const events: { id: string; projectId: string; storeNumber: string; stage: string; date: Date; workType: string; status: string; rowColor: string }[] = [];
     activeProjects.forEach(p => {
       const status = calculateProjectStatus(p);
-      const addEvent = (stage: string, dateStr: string | null) => {
+      const stages = getStagesByWorkType(p.workType);
+      stages.forEach(s => {
+        const dateStr = (p as any)[s.dateKey];
         if (!dateStr) return;
         const d = parseDate(dateStr);
         if (!d) return;
-        events.push({ id: `${p.id}-${stage}`, projectId: p.id, storeNumber: p.storeNumber, stage, date: d, workType: p.workType, status, rowColor: p.rowColor });
-      };
-      addEvent('Закрытие', p.closureDate);
-      addEvent('Демонтаж', p.demolitionDate);
-      addEvent('Монтаж', p.installationDate);
-      addEvent('Тех. открытие', p.techOpenDate);
+        events.push({ id: `${p.id}-${s.name}`, projectId: p.id, storeNumber: p.storeNumber, stage: s.name, date: d, workType: p.workType, status, rowColor: p.rowColor });
+      });
     });
     return events.sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [activeProjects]);
@@ -63,9 +61,11 @@ export default function CalendarView() {
   const today = new Date();
   const isToday = (date: Date) => date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
 
-  const getStageColor = (stage: string, status: string) => {
-    if (status === 'Просрочено') return 'bg-red-400 text-white';
-    switch (stage) { case 'Закрытие': return 'bg-orange-200 text-orange-800'; case 'Демонтаж': return 'bg-yellow-200 text-yellow-800'; case 'Монтаж': return 'bg-purple-200 text-purple-800'; case 'Тех. открытие': return 'bg-green-200 text-green-800'; default: return 'bg-gray-200 text-gray-800'; }
+  const getStageColor = (stage: string, workType: string) => {
+    if (workType === 'Открытие') {
+      switch (stage) { case 'Монтаж': return 'bg-purple-200 text-purple-800'; case 'Техническое открытие': return 'bg-green-200 text-green-800'; default: return 'bg-gray-200 text-gray-800'; }
+    }
+    switch (stage) { case 'Закрыт для покупателей': return 'bg-orange-200 text-orange-800'; case 'Демонтаж': return 'bg-yellow-200 text-yellow-800'; case 'Монтаж': return 'bg-purple-200 text-purple-800'; case 'Техническое открытие': return 'bg-green-200 text-green-800'; default: return 'bg-gray-200 text-gray-800'; }
   };
 
   return (
@@ -99,7 +99,7 @@ export default function CalendarView() {
                   <div className={`text-xs font-medium mb-1 px-1 ${isToday(day.date) ? 'text-blue-600' : 'text-gray-600'}`}>{day.date.getDate()}</div>
                   <div className="space-y-0.5">
                     {events.slice(0, 3).map(event => (
-                      <button key={event.id} onClick={() => openCard(event.projectId)} className={`w-full text-left text-[10px] px-1.5 py-0.5 rounded truncate ${getStageColor(event.stage, event.status)} hover:opacity-80`} title={`№${event.storeNumber} — ${event.stage}`}>
+                      <button key={event.id} onClick={() => openCard(event.projectId)} className={`w-full text-left text-[10px] px-1.5 py-0.5 rounded truncate ${getStageColor(event.stage, event.workType)} hover:opacity-80`} title={`№${event.storeNumber} — ${event.stage}`}>
                         №{event.storeNumber} {event.stage}
                       </button>
                     ))}

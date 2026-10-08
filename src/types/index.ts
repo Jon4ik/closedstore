@@ -7,9 +7,9 @@ export type ProjectStatus =
   | 'Закрыт для покупателей'
   | 'Демонтаж'
   | 'Монтаж'
+  | 'Открытие'
   | 'Техническое открытие'
   | 'Завершено'
-  | 'Просрочено'
   | 'Отменено'
   | 'Удален';
 
@@ -109,7 +109,6 @@ export interface FilterState {
   status: ProjectStatus | '';
   tuId: string;
   city: string;
-  showOverdue: boolean;
   showUpcoming: boolean;
 }
 
