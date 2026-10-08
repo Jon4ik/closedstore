@@ -130,16 +130,14 @@ export default function StoreTable() {
         >
           <Filter size={16} /> Фильтры
         </button>
-        {hasPermission('create') && (
-          <button
-            onClick={openAddModal}
-            className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-medium ${
-              activeTab === 'closures' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'
-            }`}
-          >
-            <Plus size={16} /> {activeTab === 'closures' ? 'Добавить объект' : 'Добавить открытие'}
-          </button>
-        )}
+        <button
+          onClick={openAddModal}
+          className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-medium ${
+            activeTab === 'closures' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'
+          }`}
+        >
+          <Plus size={16} /> {activeTab === 'closures' ? 'Добавить объект' : 'Добавить открытие'}
+        </button>
         {hasPermission('import') && (
           <button
             onClick={openImportModal}
