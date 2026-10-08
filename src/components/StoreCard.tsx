@@ -68,9 +68,7 @@ export default function StoreCard() {
             <p className="text-sm text-gray-500 mt-0.5">{project.workType}</p>
           </div>
           <div className="flex items-center gap-2">
-            {!isEditing && (
-              (project.workType === 'Открытие' ? hasPermission('edit_openings') : hasPermission('edit_closures'))
-            ) && (
+            {!isEditing && hasPermission('edit') && (
               <button onClick={handleStartEdit} className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100">
                 <Edit3 size={14} /> Редактировать
               </button>

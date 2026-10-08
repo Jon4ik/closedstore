@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { LayoutDashboard, Table2, CalendarDays, LogOut, Menu, X, User, DoorOpen } from 'lucide-react';
+import { LayoutDashboard, Table2, CalendarDays, LogOut, Menu, X, User } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,8 +14,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
 
   const mainNavItems = [
     { id: 'dashboard', label: 'Панель управления', icon: LayoutDashboard, permission: 'view_dashboard' },
-    { id: 'closures', label: 'Закрытия / Реконструкции', icon: Table2, permission: 'view_closures' },
-    { id: 'openings', label: 'Открытия', icon: DoorOpen, permission: 'view_openings' },
+    { id: 'table', label: 'Таблица объектов', icon: Table2, permission: 'view_closures' },
     { id: 'calendar', label: 'Календарь', icon: CalendarDays, permission: 'view_calendar' },
   ];
 

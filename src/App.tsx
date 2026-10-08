@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from './store/useStore';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
-import ClosuresPage from './components/ClosuresPage';
-import OpeningsPage from './components/OpeningsPage';
+import StoreTable from './components/StoreTable';
 import StoreCard from './components/StoreCard';
 import CalendarView from './components/CalendarView';
 import AddStoreModal from './components/AddStoreModal';
@@ -23,8 +22,7 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard': return <Dashboard />;
-      case 'closures': return <ClosuresPage />;
-      case 'openings': return <OpeningsPage />;
+      case 'table': return <StoreTable />;
       case 'calendar': return <CalendarView />;
       case 'users': return <UsersPage />;
       case 'roles': return <RolesPage />;
