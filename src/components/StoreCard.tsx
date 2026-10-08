@@ -22,6 +22,7 @@ export default function StoreCard() {
 
   const handleStartEdit = () => {
     setEditData({
+      address: project.address,
       closureDate: project.closureDate || '', demolitionDate: project.demolitionDate || '',
       installationDate: project.installationDate || '', techOpenDate: project.techOpenDate || '',
       tuId: project.tuId, comment: project.comment, manualStatus: project.manualStatus, rowColor: project.rowColor,
@@ -32,6 +33,7 @@ export default function StoreCard() {
   const handleSave = () => {
     if (!editData) return;
     updateProject(project.id, {
+      address: editData.address,
       closureDate: editData.closureDate || null, demolitionDate: editData.demolitionDate || null,
       installationDate: editData.installationDate || null, techOpenDate: editData.techOpenDate || null,
       tuId: editData.tuId, comment: editData.comment, manualStatus: editData.manualStatus, rowColor: editData.rowColor,
@@ -61,8 +63,8 @@ export default function StoreCard() {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 pb-8 overflow-y-auto">
       <div className="fixed inset-0 bg-black/40" onClick={closeCard} />
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-5xl mx-4 max-h-[90vh] flex flex-col">
+        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10 flex-shrink-0">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Объект №{project.storeNumber}</h2>
             <p className="text-sm text-gray-500 mt-0.5">{project.workType}</p>
@@ -77,7 +79,7 @@ export default function StoreCard() {
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Status */}
           <div className={`rounded-xl border px-4 py-3 ${mainStatusColors[status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
             <div className="flex items-center justify-between">
@@ -101,97 +103,82 @@ export default function StoreCard() {
           </div>
 
           {/* Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <MapPin size={16} className="text-gray-400 mt-0.5" />
-                <div><p className="text-xs text-gray-500">Адрес</p><p className="text-sm font-medium text-gray-900">{project.address}</p></div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">Адрес</label>
+                {isEditing ? (
+                  <input type="text" value={editData?.address || project.address} onChange={e => setEditData({ ...editData, address: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                ) : (
+                  <p className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{project.address}</p>
+                )}
               </div>
-              <div className="flex items-start gap-3">
-                <User size={16} className="text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-xs text-gray-500">ТУ (Территориальный управляющий)</p>
-                  {isEditing ? (
-                    <select value={editData?.tuId || project.tuId} onChange={e => setEditData({ ...editData, tuId: e.target.value })} className="mt-1 text-sm border border-gray-200 rounded-lg px-2 py-1">
-                      {tus.filter(t => t.isActive).map(t => <option key={t.id} value={t.id}>{t.fullName}</option>)}
-                    </select>
-                  ) : (
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{tu?.fullName || '—'}</p>
-                      {tu?.phone && <p className="text-xs text-gray-500">{tu.phone}</p>}
-                    </div>
-                  )}
-                </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">ТУ (Территориальный управляющий)</label>
+                {isEditing ? (
+                  <select value={editData?.tuId || project.tuId} onChange={e => setEditData({ ...editData, tuId: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    {tus.filter(t => t.isActive).map(t => <option key={t.id} value={t.id}>{t.fullName}</option>)}
+                  </select>
+                ) : (
+                  <div className="bg-gray-50 px-3 py-2 rounded-lg">
+                    <p className="text-sm font-medium text-gray-900">{tu?.fullName || '—'}</p>
+                    {tu?.phone && <p className="text-xs text-gray-500">{tu.phone}</p>}
+                  </div>
+                )}
               </div>
-              <div className="flex items-start gap-3">
-                <Calendar size={16} className="text-gray-400 mt-0.5" />
-                <div><p className="text-xs text-gray-500">Тип работ</p><p className="text-sm font-medium text-gray-900">{project.workType}</p></div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">Тип работ</label>
+                <p className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{project.workType}</p>
               </div>
             </div>
-            <div className="space-y-3">
-              {project.comment && (
-                <div className="flex items-start gap-3">
-                  <MessageSquare size={16} className="text-gray-400 mt-0.5" />
-                  <div>
-                    <p className="text-xs text-gray-500">Комментарий</p>
-                    {isEditing ? (
-                      <textarea value={editData?.comment || ''} onChange={e => setEditData({ ...editData, comment: e.target.value })} className="mt-1 text-sm border border-gray-200 rounded-lg px-2 py-1 w-full" rows={2} />
-                    ) : (
-                      <p className="text-sm text-gray-700">{project.comment}</p>
-                    )}
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">Комментарий</label>
+                {isEditing ? (
+                  <textarea value={editData?.comment || ''} onChange={e => setEditData({ ...editData, comment: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" rows={3} />
+                ) : (
+                  <p className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg min-h-[60px]">{project.comment || '—'}</p>
+                )}
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">Цвет строки</label>
+                {isEditing ? (
+                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                    {rowColors.map(color => (
+                      <button key={color || 'none'} onClick={() => setEditData({ ...editData, rowColor: color })}
+                        className={`w-7 h-7 rounded border-2 ${editData?.rowColor === color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}`}
+                        style={{ backgroundColor: color || '#fff' }} title={color || 'Без цвета'} />
+                    ))}
                   </div>
-                </div>
-              )}
-              {/* Row Color */}
-              <div className="flex items-start gap-3">
-                <Palette size={16} className="text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-xs text-gray-500">Цвет строки</p>
-                  {isEditing ? (
-                    <div className="flex items-center gap-1 mt-1">
-                      {rowColors.map(color => (
-                        <button key={color || 'none'} onClick={() => setEditData({ ...editData, rowColor: color })}
-                          className={`w-6 h-6 rounded border-2 ${editData?.rowColor === color ? 'border-blue-500' : 'border-gray-200'}`}
-                          style={{ backgroundColor: color || '#fff' }} title={color || 'Без цвета'} />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="w-6 h-6 rounded border border-gray-200" style={{ backgroundColor: project.rowColor || '#fff' }} />
-                      <span className="text-xs text-gray-500">{project.rowColor || 'Без цвета'}</span>
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                    <div className="w-7 h-7 rounded border border-gray-300" style={{ backgroundColor: project.rowColor || '#fff' }} />
+                    <span className="text-xs text-gray-500">{project.rowColor || 'Без цвета'}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Timeline */}
-          <div>
+          <div className="bg-gray-50 rounded-xl p-4">
             <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Clock size={18} className="text-blue-600" />Таймлайн</h3>
-            <div className="space-y-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {stages.map((stage, idx) => (
-                <div key={idx} className="flex items-start gap-4">
-                  <div className="flex flex-col items-center">
-                    <div className={`w-4 h-4 rounded-full border-2 ${stage.status === 'completed' ? 'bg-green-500 border-green-500' : stage.status === 'current' ? 'bg-yellow-500 border-yellow-500 animate-pulse' : stage.status === 'overdue' ? 'bg-red-500 border-red-500' : stage.status === 'planned' ? 'bg-blue-500 border-blue-500' : 'bg-white border-gray-300'}`} />
-                    {idx < stages.length - 1 && <div className={`w-0.5 h-12 ${stage.status === 'completed' ? 'bg-green-300' : 'bg-gray-200'}`} />}
-                  </div>
-                  <div className="flex-1 pb-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className={`text-sm font-medium ${stage.status === 'current' ? 'text-gray-900' : stage.status === 'overdue' ? 'text-red-700' : 'text-gray-600'}`}>{stage.name}</p>
-                        {isEditing ? (
-                          <input type="text" placeholder="ДД.ММ.ГГГГ" value={editData?.[getStageField(stage.name)] || ''} onChange={e => setEditData({ ...editData, [getStageField(stage.name)]: e.target.value })} className="mt-1 text-sm border border-gray-200 rounded px-2 py-1 w-32" />
-                        ) : (
-                          <p className={`text-sm mt-0.5 ${stage.date ? 'text-gray-700' : 'text-gray-400 italic'}`}>{stage.date || 'Не назначено'}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${stage.status === 'completed' ? 'bg-green-100 text-green-700' : stage.status === 'current' ? 'bg-yellow-100 text-yellow-700' : stage.status === 'overdue' ? 'bg-red-100 text-red-700' : stage.status === 'planned' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>{getStatusLabel(stage.status)}</span>
-                        {stage.daysOverdue !== null && <span className="text-xs text-red-600 font-medium">+{stage.daysOverdue} дн.</span>}
-                      </div>
+                <div key={idx} className="bg-white rounded-lg p-3 border border-gray-200">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${stage.status === 'completed' ? 'bg-green-500' : stage.status === 'current' ? 'bg-yellow-500 animate-pulse' : stage.status === 'overdue' ? 'bg-red-500' : stage.status === 'planned' ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                      <p className={`text-sm font-medium ${stage.status === 'current' ? 'text-gray-900' : stage.status === 'overdue' ? 'text-red-700' : 'text-gray-700'}`}>{stage.name}</p>
                     </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${stage.status === 'completed' ? 'bg-green-100 text-green-700' : stage.status === 'current' ? 'bg-yellow-100 text-yellow-700' : stage.status === 'overdue' ? 'bg-red-100 text-red-700' : stage.status === 'planned' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>{getStatusLabel(stage.status)}</span>
                   </div>
+                  {isEditing ? (
+                    <input type="text" placeholder="ДД.ММ.ГГГГ" value={editData?.[getStageField(stage.name)] || ''} onChange={e => setEditData({ ...editData, [getStageField(stage.name)]: e.target.value })} className="w-full text-sm border border-gray-200 rounded px-2 py-1.5" />
+                  ) : (
+                    <p className={`text-sm ${stage.date ? 'text-gray-700' : 'text-gray-400 italic'}`}>{stage.date || 'Не назначено'}</p>
+                  )}
+                  {stage.daysOverdue !== null && <p className="text-xs text-red-600 font-medium mt-1">Просрочено на {stage.daysOverdue} дн.</p>}
                 </div>
               ))}
             </div>
@@ -216,61 +203,69 @@ export default function StoreCard() {
           )}
 
           {/* Comments */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><MessageSquare size={18} className="text-blue-600" />Комментарии ({projectComments.length})</h3>
-            <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
-              {projectComments.length === 0 ? (
-                <p className="text-sm text-gray-400 italic">Нет комментариев</p>
-              ) : projectComments.map(c => (
-                <div key={c.id} className="bg-gray-50 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-gray-700">{c.userName}</span>
-                    <span className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleString('ru-RU')}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><MessageSquare size={18} className="text-blue-600" />Комментарии ({projectComments.length})</h3>
+              <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
+                {projectComments.length === 0 ? (
+                  <p className="text-sm text-gray-400 italic">Нет комментариев</p>
+                ) : projectComments.map(c => (
+                  <div key={c.id} className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-700">{c.userName}</span>
+                      <span className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleString('ru-RU')}</span>
+                    </div>
+                    <p className="text-sm text-gray-700">{c.text}</p>
                   </div>
-                  <p className="text-sm text-gray-700">{c.text}</p>
-                </div>
-              ))}
-            </div>
-            {hasPermission('add_comments') || hasPermission('edit') ? (
-              <div className="flex items-center gap-2">
-                <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Добавить комментарий..." className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
-                <button onClick={handleAddComment} className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><Send size={16} /></button>
+                ))}
               </div>
-            ) : null}
-          </div>
+              {hasPermission('add_comments') || hasPermission('edit') ? (
+                <div className="flex items-center gap-2">
+                  <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Добавить комментарий..." className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
+                  <button onClick={handleAddComment} className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><Send size={16} /></button>
+                </div>
+              ) : null}
+            </div>
 
           {/* History */}
-          <div>
-            <button onClick={() => setShowHistory(!showHistory)} className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900">
-              <History size={16} /> История изменений ({projectAudit.length}) {showHistory ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-            {showHistory && (
-              <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
-                {projectAudit.length === 0 ? <p className="text-sm text-gray-500">Нет записей</p> :
-                  projectAudit.map(log => (
-                    <div key={log.id} className="bg-gray-50 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-gray-500">{new Date(log.timestamp).toLocaleString('ru-RU')}</span>
-                        <span className="text-xs text-gray-500">{log.userName}</span>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><History size={18} className="text-gray-600" />История изменений</h3>
+              <button onClick={() => setShowHistory(!showHistory)} className="text-sm text-blue-600 hover:text-blue-700 mb-2">
+                {showHistory ? 'Скрыть' : `Показать (${projectAudit.length})`}
+              </button>
+              {showHistory && (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {projectAudit.length === 0 ? <p className="text-sm text-gray-400 italic">Нет записей</p> :
+                    projectAudit.map(log => (
+                      <div key={log.id} className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-gray-700">{log.userName}</span>
+                          <span className="text-xs text-gray-400">{new Date(log.timestamp).toLocaleString('ru-RU')}</span>
+                        </div>
+                        <p className="text-sm"><span className="font-medium">{log.details}:</span>{' '}
+                          <span className="text-red-600 line-through">{log.oldValue}</span>{' → '}<span className="text-green-600">{log.newValue}</span>
+                        </p>
                       </div>
-                      <p className="text-sm"><span className="font-medium">{log.details}:</span>{' '}
-                        <span className="text-red-600 line-through">{log.oldValue}</span>{' → '}<span className="text-green-600">{log.newValue}</span>
-                      </p>
-                    </div>
-                  ))
-                }
-              </div>
-            )}
-          </div>
-
-          {isEditing && (
-            <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-              <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><Check size={16} />Сохранить</button>
-              <button onClick={() => { setEditing(false); setEditData(null); }} className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Отмена</button>
+                    ))
+                  }
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
+
+        {/* Sticky Footer with Save/Cancel buttons */}
+        {isEditing && (
+          <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex items-center gap-3 flex-shrink-0">
+            <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm">
+              <Check size={16} />Сохранить
+            </button>
+            <button onClick={() => { setEditing(false); setEditData(null); }} className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+              Отмена
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
