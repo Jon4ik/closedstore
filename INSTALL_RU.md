@@ -40,8 +40,12 @@ nano .env
 Отредактируйте следующие параметры:
 
 ```env
-# Пароль для базы данных (придумайте надёжный пароль)
-POSTGRES_PASSWORD=YourStrongPassword123!
+# Настройки PostgreSQL (внешняя база данных)
+DB_HOST=your-postgres-host
+DB_PORT=5432
+DB_NAME=store_reconstruction
+DB_USER=postgres
+DB_PASSWORD=YourStrongPassword123!
 
 # Секретный ключ для JWT (минимум 32 символа)
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
@@ -50,7 +54,18 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 DOMAIN=localhost
 ```
 
-### 4. Запуск системы
+### 4. Инициализация базы данных
+
+```bash
+# Создайте базу данных в PostgreSQL
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
+
+# Запустите скрипт инициализации
+chmod +x init-db.sh
+./init-db.sh
+```
+
+### 5. Запуск системы
 
 ```bash
 # Запускаем все контейнеры
@@ -63,16 +78,15 @@ docker compose ps
 Вы должны увидеть:
 ```
 NAME                    STATUS
-reconstruction-db       Up (healthy)
 reconstruction-api      Up
 reconstruction-frontend Up
 ```
 
-### 5. Вход в систему
+### 6. Вход в систему
 
 Откройте браузер:
-- **Локально**: http://localhost
-- **На сервере**: http://YOUR_SERVER_IP
+- **Локально**: http://localhost:5001
+- **На сервере**: http://YOUR_SERVER_IP:5001
 
 **Учётные данные:**
 - Логин: `admin`
@@ -118,6 +132,8 @@ reconstruction-frontend Up
 
 **Цвет в таблице:** Зелёный
 
+**Примечание:** При выборе типа "Закрытие" поля "Монтаж" и "Техническое открытие" автоматически скрываются в форме добавления объекта.
+
 ---
 
 ## 🔧 Основные команды
@@ -140,7 +156,6 @@ docker compose logs -f
 # Просмотр логов конкретного сервиса
 docker compose logs -f frontend
 docker compose logs -f backend
-docker compose logs -f postgres
 ```
 
 ### Обновление системы
@@ -157,10 +172,10 @@ docker compose up -d --build
 
 ```bash
 # Создать бэкап базы данных
-docker compose exec postgres pg_dump -U postgres store_reconstruction > backup_$(date +%Y%m%d).sql
+pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER $DB_NAME > backup_$(date +%Y%m%d).sql
 
 # Восстановить из бэкапа
-cat backup.sql | docker compose exec -T postgres psql -U postgres store_reconstruction
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME < backup.sql
 ```
 
 ---
@@ -178,9 +193,9 @@ curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
 
 # Настройка файрвола
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw allow 22/tcp
+sudo ufw allow 5001/tcp  # Frontend
+sudo ufw allow 443/tcp   # HTTPS
+sudo ufw allow 22/tcp    # SSH
 sudo ufw enable
 ```
 
@@ -227,7 +242,10 @@ BACKUP_DIR="/path/to/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
 mkdir -p $BACKUP_DIR
 
-docker compose exec postgres pg_dump -U postgres store_reconstruction > $BACKUP_DIR/backup_$DATE.sql
+# Источник переменных из .env
+source .env
+
+pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER $DB_NAME > $BACKUP_DIR/backup_$DATE.sql
 gzip $BACKUP_DIR/backup_$DATE.sql
 
 # Удалить бэкапы старше 30 дней
@@ -258,15 +276,20 @@ crontab -e
 
 3. **Ограничьте доступ**
    - Используйте файрвол
-   - Откройте только порты 80, 443, 22
+   - Откройте только порты 5001, 443, 22
    - Используйте VPN для административного доступа
 
-4. **Регулярные бэкапы**
+4. **Защитите PostgreSQL**
+   - Используйте SSL для подключения к БД
+   - Ограничьте доступ по IP
+   - Регулярно меняйте пароли
+
+5. **Регулярные бэкапы**
    - Настройте автоматический бэкап
    - Храните бэкапы в другом месте
    - Тестируйте восстановление
 
-5. **Обновления**
+6. **Обновления**
    - Регулярно обновляйте систему
    - Обновляйте Docker образы
 
@@ -280,22 +303,31 @@ crontab -e
 
 ```bash
 # Найти процесс
-sudo lsof -i :80
-sudo lsof -i :5432
+sudo lsof -i :5001
+sudo lsof -i :4000
 
 # Остановить конфликтующий сервис
 sudo systemctl stop nginx
 ```
 
-### База данных не подключается
+### Backend не подключается к PostgreSQL
 
 ```bash
-# Проверить статус
-docker compose logs postgres
+# Проверить логи backend
+docker compose logs backend
 
-# Перезапустить PostgreSQL
-docker compose restart postgres
+# Проверить доступность PostgreSQL
+docker compose exec backend ping $DB_HOST
+
+# Проверить настройки .env
+cat .env | grep DB_
 ```
+
+Убедитесь, что:
+- PostgreSQL запущен и доступен
+- Порт 5432 открыт в firewall
+- Пользователь имеет права на базу данных
+- Настройки в `.env` корректны
 
 ### Изменения не применяются
 
@@ -308,8 +340,8 @@ docker compose up -d
 ### Полный сброс (⚠️ удалит все данные!)
 
 ```bash
-docker compose down -v
-docker compose up -d
+docker compose down
+docker compose up -d --build
 ```
 
 ---
@@ -321,7 +353,8 @@ docker compose up -d
 1. Проверьте логи: `docker compose logs`
 2. Убедитесь, что все сервисы запущены: `docker compose ps`
 3. Проверьте конфигурацию `.env`
-4. Проверьте доступность портов
+4. Проверьте доступность PostgreSQL
+5. Проверьте доступность портов 5001 и 4000
 
 Для дополнительной помощи создайте issue в репозитории проекта.
 
@@ -329,11 +362,11 @@ docker compose up -d
 
 ## 📚 Дополнительная информация
 
-- [Полная документация](DEPLOYMENT.md)
+- [Полная документация](DOCKER_DEPLOY.md)
 - [README](README.md)
-- [API документация](http://localhost/api/docs) (после запуска)
+- [API документация](http://localhost:4000/api/docs) (после запуска)
 
 ---
 
-**Версия системы:** 1.0.0  
+**Версия системы:** 1.1.0 (без встроенной PostgreSQL)  
 **Дата обновления:** 2024

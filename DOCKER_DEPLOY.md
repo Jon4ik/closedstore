@@ -1,4 +1,10 @@
-# 🚀 Инструкция по развёртыванию в Docker
+# 🚀 Инструкция по развёртыванию в Docker (без PostgreSQL)
+
+## Требования
+
+- Docker 20.10+
+- Docker Compose 2.0+
+- PostgreSQL 13+ (внешняя база данных)
 
 ## Быстрый старт
 
@@ -19,35 +25,69 @@ nano .env
 ```
 
 Обязательно измените:
-- `POSTGRES_PASSWORD` - пароль для базы данных
+- `DB_HOST` - хост вашей PostgreSQL базы данных
+- `DB_PORT` - порт PostgreSQL (обычно 5432)
+- `DB_NAME` - имя базы данных
+- `DB_USER` - пользователь PostgreSQL
+- `DB_PASSWORD` - пароль пользователя PostgreSQL
 - `JWT_SECRET` - секретный ключ для JWT (минимум 32 символа)
 - `DOMAIN` - домен или IP-адрес вашего сервера
 
-### 3. Запуск Docker Compose
+Пример `.env`:
+```env
+DB_HOST=192.168.1.100
+DB_PORT=5432
+DB_NAME=store_reconstruction
+DB_USER=postgres
+DB_PASSWORD=your_secure_password
+JWT_SECRET=your_jwt_secret_at_least_32_characters_long
+DOMAIN=reconstruction.yourcompany.ru
+```
+
+### 3. Инициализация базы данных
+
+Перед запуском приложения необходимо создать базу данных и применить миграции:
+
+```bash
+# Создайте базу данных в PostgreSQL
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
+
+# Запустите скрипт инициализации
+chmod +x init-db.sh
+./init-db.sh
+```
+
+Или вручную:
+```bash
+cd backend
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+### 4. Запуск Docker Compose
 
 ```bash
 docker compose up -d
 ```
 
-### 4. Проверка статуса
+### 5. Проверка статуса
 
 ```bash
 docker compose ps
 ```
 
-Все сервисы должны быть в статусе `Up`:
-- `reconstruction-db` (PostgreSQL)
+Должны быть запущены два сервиса:
 - `reconstruction-api` (Backend)
 - `reconstruction-frontend` (Frontend)
 
-### 5. Доступ к приложению
+### 6. Доступ к приложению
 
 Откройте браузер:
-- **Frontend**: `http://your-server-ip`
-- **Backend API**: `http://your-server-ip/api`
-- **Swagger Docs**: `http://your-server-ip/api/docs`
+- **Frontend**: `http://your-server-ip:5001`
+- **Backend API**: `http://your-server-ip:4000/api`
+- **Swagger Docs**: `http://your-server-ip:4000/api/docs`
 
-### 6. Первый вход
+### 7. Первый вход
 
 Используйте учётные данные:
 - **Логин**: `admin`
@@ -73,6 +113,7 @@ closedstore/
 │   └── nginx.conf
 ├── docker-compose.yml
 ├── .env.example
+├── init-db.sh            # Скрипт инициализации БД
 └── README.md
 ```
 
@@ -101,7 +142,6 @@ docker compose logs -f
 # Конкретный сервис
 docker compose logs -f backend
 docker compose logs -f frontend
-docker compose logs -f postgres
 ```
 
 ### Пересборка после изменений
@@ -131,42 +171,52 @@ docker compose up -d --build
 
 ### Подключение к PostgreSQL
 ```bash
-docker compose exec postgres psql -U postgres -d store_reconstruction
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME
 ```
 
 ### Создание резервной копии
 ```bash
-docker compose exec postgres pg_dump -U postgres store_reconstruction > backup_$(date +%Y%m%d).sql
+pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER $DB_NAME > backup_$(date +%Y%m%d).sql
 ```
 
 ### Восстановление из резервной копии
 ```bash
-cat backup.sql | docker compose exec -T postgres psql -U postgres store_reconstruction
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME < backup.sql
 ```
 
 ### Применение миграций
 ```bash
-docker compose exec backend npx prisma migrate deploy
+cd backend
+npx prisma migrate deploy
 ```
 
 ### Запуск seed данных
 ```bash
-docker compose exec backend npx prisma db seed
+cd backend
+npx prisma db seed
 ```
 
 ## Решение проблем
 
-### Ошибка: "npm ci requires package-lock.json"
+### Backend не может подключиться к PostgreSQL
 
-Если вы видите эту ошибку, замените `npm ci` на `npm install` в Dockerfile:
+Проверьте:
+```bash
+# Проверьте логи backend
+docker compose logs backend
 
-```dockerfile
-# Было:
-RUN npm ci
+# Проверьте доступность PostgreSQL
+docker compose exec backend ping $DB_HOST
 
-# Стало:
-RUN npm install
+# Проверьте настройки .env
+cat .env | grep DB_
 ```
+
+Убедитесь, что:
+- PostgreSQL запущен и доступен
+- Порт 5432 открыт в firewall
+- Пользователь имеет права на базу данных
+- Настройки в `.env` корректны
 
 ### Backend не запускается
 
@@ -177,7 +227,8 @@ docker compose logs backend
 
 Частые проблемы:
 - Неправильные настройки в `.env`
-- База данных еще не готова (подождите 10-20 секунд)
+- База данных не создана
+- Миграции не применены
 - Порт 4000 уже занят
 
 ### Frontend не открывается
@@ -188,17 +239,30 @@ docker compose logs frontend
 ```
 
 Убедитесь, что:
-- Порт 80 не занят другим сервисом
+- Порт 5001 не занят другим сервисом
 - Nginx конфигурация корректна
+- Backend доступен
+
+### Ошибка инициализации базы данных
+
+Если скрипт `init-db.sh` не работает:
+```bash
+# Создайте базу данных вручную
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
+
+# Примените миграции
+cd backend
+npx prisma migrate deploy
+
+# Запустите seed
+npx prisma db seed
+```
 
 ### Очистка и полный перезапуск
 
 ```bash
 # Остановить и удалить все контейнеры
-docker compose down -v
-
-# Удалить образы
-docker compose down --rmi all
+docker compose down
 
 # Пересобрать и запустить заново
 docker compose up -d --build
@@ -210,16 +274,23 @@ docker compose up -d --build
 - Измените все пароли по умолчанию
 - Используйте HTTPS (настройте SSL в Nginx)
 - Ограничьте доступ к портам через firewall
+- Используйте SSL для подключения к PostgreSQL
 
 ### 2. Мониторинг
 - Настройте логирование
 - Используйте мониторинг ресурсов
 - Настройте алерты
+- Мониторьте состояние PostgreSQL
 
 ### 3. Резервное копирование
 - Настройте автоматический бэкап базы данных
 - Храните бэкапы в другом месте
 - Регулярно проверяйте восстановление
+
+Пример cron для ежедневного бэкапа:
+```bash
+0 2 * * * pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER $DB_NAME > /backups/db_$(date +\%Y\%m\%d).sql
+```
 
 ### 4. Обновления
 - Регулярно обновляйте базовые образы
@@ -232,7 +303,8 @@ docker compose up -d --build
 1. Проверьте логи: `docker compose logs`
 2. Убедитесь, что все сервисы запущены: `docker compose ps`
 3. Проверьте конфигурацию `.env`
-4. Проверьте доступность портов
+4. Проверьте доступность PostgreSQL
+5. Проверьте доступность портов
 
 Для дополнительной помощи обратитесь к документации или создайте issue в репозитории.
 
