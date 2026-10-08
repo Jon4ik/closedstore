@@ -6,9 +6,9 @@ import * as ExcelJS from 'exceljs';
 export class ImportService {
   constructor(private prisma: PrismaService) {}
 
-  async importFromExcel(buffer: Buffer, userId: string, userName: string) {
+  async importFromExcel(buffer: Buffer | Uint8Array, userId: string, userName: string) {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as Buffer);
     const worksheet = workbook.worksheets[0];
     
     const results = { imported: 0, errors: [] as any[] };
