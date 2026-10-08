@@ -18,39 +18,66 @@ interface AppState {
   isCardOpen: boolean;
   isAddModalOpen: boolean;
   isImportModalOpen: boolean;
-  isSettingsOpen: boolean;
   isEditing: boolean;
   dbConfig: DatabaseConfig;
+  dataLoaded: boolean;
 
+  // Auth
   login: (username: string, password: string) => boolean;
   logout: () => void;
+
+  // Filters
   setFilters: (filters: Partial<FilterState>) => void;
   resetFilters: () => void;
+
+  // Projects
   addProject: (project: Omit<StoreProject, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => void;
   updateProject: (id: string, updates: Partial<StoreProject>) => void;
   deleteProject: (id: string) => void;
   restoreProject: (id: string) => void;
+
+  // UI
   openCard: (id: string) => void;
   closeCard: () => void;
   openAddModal: () => void;
   closeAddModal: () => void;
   openImportModal: () => void;
   closeImportModal: () => void;
-  openSettings: () => void;
-  closeSettings: () => void;
   setEditing: (val: boolean) => void;
+
+  // TUs
   addTU: (tu: Omit<TU, 'id'>) => void;
   updateTU: (id: string, updates: Partial<TU>) => void;
+  deleteTU: (id: string) => boolean;
+
+  // Users
   addUser: (user: Omit<SystemUser, 'id' | 'createdAt'>) => void;
   updateUser: (id: string, updates: Partial<SystemUser>) => void;
-  deleteUser: (id: string) => void;
+  deleteUser: (id: string) => boolean;
+
+  // Roles
   addRole: (role: Omit<Role, 'id'>) => void;
   updateRole: (id: string, updates: Partial<Role>) => void;
-  deleteRole: (id: string) => void;
+  deleteRole: (id: string) => boolean;
+
+  // Comments
   addComment: (comment: Omit<Comment, 'id' | 'createdAt'>) => void;
+  deleteComment: (id: string) => void;
+
+  // Import
   importProjects: (projects: Omit<StoreProject, 'id' | 'createdAt' | 'updatedAt' | 'status'>[]) => void;
+
+  // DB Config
   updateDbConfig: (config: Partial<DatabaseConfig>) => void;
+
+  // Audit
+  clearAuditLog: () => void;
+  deleteAuditEntry: (id: string) => void;
+
+  // Permissions
   hasPermission: (permission: string) => boolean;
+
+  // Getters
   getFilteredProjects: () => StoreProject[];
   getDashboardStats: () => { total: number; closures: number; reconstructions: number; inProgress: number; overdue: number; completed: number; cancelled: number; upcoming7days: number; };
   getNotifications: () => Notification[];
@@ -74,14 +101,14 @@ function parseDate(dateStr: string | null): Date | null {
   } catch { return null; }
 }
 
-async function saveToStorage(key: string, data: any[]) {
+async function saveToStorage(key: string, items: any[]) {
   try {
     const { openDB } = await import('idb');
     const db = await openDB('store-reconstruction', 1);
     const tx = db.transaction(key, 'readwrite');
     const store = tx.objectStore(key);
     await store.clear();
-    for (const item of data) { await store.put(item); }
+    for (const item of items) { await store.put(item); }
     await tx.done;
   } catch (e) { console.error('Save error:', e); }
 }
@@ -101,9 +128,9 @@ export const useStore = create<AppState>((set, get) => {
     isCardOpen: false,
     isAddModalOpen: false,
     isImportModalOpen: false,
-    isSettingsOpen: false,
     isEditing: false,
     dbConfig: { host: 'localhost', port: 5432, database: 'store_reconstruction', username: 'postgres', password: '', ssl: false },
+    dataLoaded: false,
   };
 
   // Load from IndexedDB
@@ -128,6 +155,7 @@ export const useStore = create<AppState>((set, get) => {
         comments: comments || [],
         users: users.length > 0 ? users : [...seedUsers],
         roles: roles.length > 0 ? roles : [...seedRoles],
+        dataLoaded: true,
       });
     });
   });
@@ -139,7 +167,6 @@ export const useStore = create<AppState>((set, get) => {
       const user = get().users.find(u => u.username === username && u.password === password && u.isActive);
       if (user) {
         set({ currentUser: user });
-        // Audit: login
         set(state => {
           const log: AuditLogEntry = {
             id: `log-${Date.now()}`, storeId: null, userId: user.id, userName: user.fullName,
@@ -192,7 +219,6 @@ export const useStore = create<AppState>((set, get) => {
         const user = state.currentUser;
         const newLogs: AuditLogEntry[] = [];
         const now = new Date().toISOString();
-
         Object.entries(updates).forEach(([key, newValue]) => {
           if (key === 'status' || key === 'updatedAt') return;
           const oldValue = (project as any)[key];
@@ -206,7 +232,6 @@ export const useStore = create<AppState>((set, get) => {
             });
           }
         });
-
         const updatedProject = { ...project, ...updates, updatedAt: now };
         updatedProject.status = calculateProjectStatus(updatedProject);
         const newProjects = state.projects.map(p => p.id === id ? updatedProject : p);
@@ -253,27 +278,56 @@ export const useStore = create<AppState>((set, get) => {
     closeAddModal: () => set({ isAddModalOpen: false }),
     openImportModal: () => set({ isImportModalOpen: true }),
     closeImportModal: () => set({ isImportModalOpen: false }),
-    openSettings: () => set({ isSettingsOpen: true }),
-    closeSettings: () => set({ isSettingsOpen: false }),
     setEditing: (val: boolean) => set({ isEditing: val }),
 
+    // TUs
     addTU: (tuData) => {
       const id = `tu-${Date.now()}`;
+      const user = get().currentUser;
       set(state => {
         const newTUs = [...state.tus, { ...tuData, id }];
         saveToStorage('tus', newTUs);
-        return { tus: newTUs };
+        const log: AuditLogEntry = {
+          id: `log-${Date.now()}`, storeId: null, userId: user?.id || 'system', userName: user?.fullName || 'Система',
+          timestamp: new Date().toISOString(), action: 'create_tu', field: 'tu', oldValue: '', newValue: tuData.fullName, details: `Добавлен ТУ: ${tuData.fullName}`
+        };
+        return { tus: newTUs, auditLog: [...state.auditLog, log] };
       });
     },
 
     updateTU: (id: string, updates: Partial<TU>) => {
+      const user = get().currentUser;
       set(state => {
         const newTUs = state.tus.map(t => t.id === id ? { ...t, ...updates } : t);
         saveToStorage('tus', newTUs);
-        return { tus: newTUs };
+        const log: AuditLogEntry = {
+          id: `log-${Date.now()}`, storeId: null, userId: user?.id || 'system', userName: user?.fullName || 'Система',
+          timestamp: new Date().toISOString(), action: 'update_tu', field: 'tu', oldValue: '', newValue: id, details: 'Обновлён ТУ'
+        };
+        return { tus: newTUs, auditLog: [...state.auditLog, log] };
       });
     },
 
+    deleteTU: (id: string) => {
+      const user = get().currentUser;
+      // Check if TU is used in projects
+      const usedInProjects = get().projects.filter(p => p.tuId === id && !p.isDeleted);
+      if (usedInProjects.length > 0) return false;
+      
+      set(state => {
+        const newTUs = state.tus.filter(t => t.id !== id);
+        saveToStorage('tus', newTUs);
+        const tu = state.tus.find(t => t.id === id);
+        const log: AuditLogEntry = {
+          id: `log-${Date.now()}`, storeId: null, userId: user?.id || 'system', userName: user?.fullName || 'Система',
+          timestamp: new Date().toISOString(), action: 'delete_tu', field: 'tu', oldValue: tu?.fullName || '', newValue: '', details: `Удалён ТУ: ${tu?.fullName || id}`
+        };
+        return { tus: newTUs, auditLog: [...state.auditLog, log] };
+      });
+      return true;
+    },
+
+    // Users
     addUser: (userData) => {
       const id = `user-${Date.now()}`;
       const user = get().currentUser;
@@ -283,6 +337,7 @@ export const useStore = create<AppState>((set, get) => {
           id: `log-${Date.now()}`, storeId: null, userId: user?.id || 'system', userName: user?.fullName || 'Система',
           timestamp: new Date().toISOString(), action: 'create_user', field: 'user', oldValue: '', newValue: userData.username, details: `Создан пользователь ${userData.username}`
         };
+        saveToStorage('users', [...state.users, newUser]);
         return { users: [...state.users, newUser], auditLog: [...state.auditLog, log] };
       });
     },
@@ -291,43 +346,82 @@ export const useStore = create<AppState>((set, get) => {
       const user = get().currentUser;
       set(state => {
         const newUsers = state.users.map(u => u.id === id ? { ...u, ...updates } : u);
+        saveToStorage('users', newUsers);
         const log: AuditLogEntry = {
           id: `log-${Date.now()}`, storeId: null, userId: user?.id || 'system', userName: user?.fullName || 'Система',
-          timestamp: new Date().toISOString(), action: 'update_user', field: 'user', oldValue: '', newValue: id, details: `Обновлён пользователь`
+          timestamp: new Date().toISOString(), action: 'update_user', field: 'user', oldValue: '', newValue: id, details: 'Обновлён пользователь'
         };
         return { users: newUsers, auditLog: [...state.auditLog, log] };
       });
     },
 
     deleteUser: (id: string) => {
-      set(state => ({ users: state.users.map(u => u.id === id ? { ...u, isActive: false } : u) }));
+      const currentUser = get().currentUser;
+      if (id === currentUser?.id) return false; // Can't delete yourself
+      if (get().users.length <= 1) return false; // Must have at least one user
+      
+      const user = get().currentUser;
+      set(state => {
+        const deletedUser = state.users.find(u => u.id === id);
+        const newUsers = state.users.filter(u => u.id !== id);
+        saveToStorage('users', newUsers);
+        const log: AuditLogEntry = {
+          id: `log-${Date.now()}`, storeId: null, userId: user?.id || 'system', userName: user?.fullName || 'Система',
+          timestamp: new Date().toISOString(), action: 'delete_user', field: 'user', oldValue: deletedUser?.username || '', newValue: '', details: `Удалён пользователь: ${deletedUser?.fullName || id}`
+        };
+        return { users: newUsers, auditLog: [...state.auditLog, log] };
+      });
+      return true;
     },
 
+    // Roles
     addRole: (roleData) => {
       const id = `role-${Date.now()}`;
+      const user = get().currentUser;
       set(state => {
-        const newRoles = [...state.roles, { ...roleData, id, isSystem: false }];
+        const newRoles = [...state.roles, { ...roleData, id }];
         saveToStorage('roles', newRoles);
-        return { roles: newRoles };
+        const log: AuditLogEntry = {
+          id: `log-${Date.now()}`, storeId: null, userId: user?.id || 'system', userName: user?.fullName || 'Система',
+          timestamp: new Date().toISOString(), action: 'create_role', field: 'role', oldValue: '', newValue: roleData.name, details: `Создана роль: ${roleData.name}`
+        };
+        return { roles: newRoles, auditLog: [...state.auditLog, log] };
       });
     },
 
     updateRole: (id: string, updates: Partial<Role>) => {
+      const user = get().currentUser;
       set(state => {
         const newRoles = state.roles.map(r => r.id === id ? { ...r, ...updates } : r);
         saveToStorage('roles', newRoles);
-        return { roles: newRoles };
+        const log: AuditLogEntry = {
+          id: `log-${Date.now()}`, storeId: null, userId: user?.id || 'system', userName: user?.fullName || 'Система',
+          timestamp: new Date().toISOString(), action: 'update_role', field: 'role', oldValue: '', newValue: id, details: 'Обновлена роль'
+        };
+        return { roles: newRoles, auditLog: [...state.auditLog, log] };
       });
     },
 
     deleteRole: (id: string) => {
+      // Check if role is used by users
+      const usedByUsers = get().users.filter(u => u.role === id);
+      if (usedByUsers.length > 0) return false;
+      
+      const user = get().currentUser;
       set(state => {
+        const deletedRole = state.roles.find(r => r.id === id);
         const newRoles = state.roles.filter(r => r.id !== id);
         saveToStorage('roles', newRoles);
-        return { roles: newRoles };
+        const log: AuditLogEntry = {
+          id: `log-${Date.now()}`, storeId: null, userId: user?.id || 'system', userName: user?.fullName || 'Система',
+          timestamp: new Date().toISOString(), action: 'delete_role', field: 'role', oldValue: deletedRole?.name || '', newValue: '', details: `Удалена роль: ${deletedRole?.name || id}`
+        };
+        return { roles: newRoles, auditLog: [...state.auditLog, log] };
       });
+      return true;
     },
 
+    // Comments
     addComment: (commentData) => {
       const id = `comment-${Date.now()}`;
       const user = get().currentUser;
@@ -339,6 +433,13 @@ export const useStore = create<AppState>((set, get) => {
         };
         const newComments = [...state.comments, newComment];
         return { comments: newComments, auditLog: [...state.auditLog, log] };
+      });
+    },
+
+    deleteComment: (id: string) => {
+      set(state => {
+        const newComments = state.comments.filter(c => c.id !== id);
+        return { comments: newComments };
       });
     },
 
@@ -366,6 +467,18 @@ export const useStore = create<AppState>((set, get) => {
       set(state => ({ dbConfig: { ...state.dbConfig, ...config } }));
     },
 
+    clearAuditLog: () => {
+      set({ auditLog: [] });
+      saveToStorage('auditLog', []);
+    },
+
+    deleteAuditEntry: (id: string) => {
+      set(state => {
+        const newLog = state.auditLog.filter(l => l.id !== id);
+        return { auditLog: newLog };
+      });
+    },
+
     hasPermission: (permission: string) => {
       const user = get().currentUser;
       if (!user) return false;
@@ -378,14 +491,9 @@ export const useStore = create<AppState>((set, get) => {
       const state = get();
       let projects = state.projects.filter(p => !p.isDeleted);
       const { filters } = state;
-
       if (filters.search) {
         const search = filters.search.toLowerCase();
-        projects = projects.filter(p =>
-          p.storeNumber.toLowerCase().includes(search) ||
-          p.address.toLowerCase().includes(search) ||
-          p.city.toLowerCase().includes(search)
-        );
+        projects = projects.filter(p => p.storeNumber.toLowerCase().includes(search) || p.address.toLowerCase().includes(search) || p.city.toLowerCase().includes(search));
       }
       if (filters.workType) projects = projects.filter(p => p.workType === filters.workType);
       if (filters.status) projects = projects.filter(p => calculateProjectStatus(p) === filters.status);
@@ -410,7 +518,6 @@ export const useStore = create<AppState>((set, get) => {
           return event && event.daysUntil <= 7 && event.daysUntil >= 0;
         });
       }
-
       projects.sort((a, b) => {
         const eventA = getNearestEvent(a);
         const eventB = getNearestEvent(b);

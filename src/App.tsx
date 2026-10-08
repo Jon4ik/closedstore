@@ -8,6 +8,10 @@ import CalendarView from './components/CalendarView';
 import AddStoreModal from './components/AddStoreModal';
 import ImportModal from './components/ImportModal';
 import LoginPage from './components/LoginPage';
+import UsersPage from './pages/UsersPage';
+import RolesPage from './pages/RolesPage';
+import TUsPage from './pages/TUsPage';
+import AuditPage from './pages/AuditPage';
 
 export default function App() {
   const { currentUser } = useStore();
@@ -20,6 +24,10 @@ export default function App() {
       case 'dashboard': return <Dashboard />;
       case 'table': return <StoreTable />;
       case 'calendar': return <CalendarView />;
+      case 'users': return <UsersPage />;
+      case 'roles': return <RolesPage />;
+      case 'tus': return <TUsPage />;
+      case 'audit': return <AuditPage />;
       default: return <Dashboard />;
     }
   };

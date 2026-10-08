@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { LayoutDashboard, Table2, CalendarDays, Bell, LogOut, Menu, X, User, Settings } from 'lucide-react';
-import TUsModal from './TUsModal';
-import SettingsModal from './SettingsModal';
+import { LayoutDashboard, Table2, CalendarDays, Bell, LogOut, Menu, X, User, Users, Shield, FileText, UserCheck } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,10 +14,17 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
   const [showNotif, setShowNotif] = useState(false);
   const notifications = getNotifications();
 
-  const navItems = [
+  const mainNavItems = [
     { id: 'dashboard', label: 'Панель управления', icon: LayoutDashboard },
     { id: 'table', label: 'Таблица объектов', icon: Table2 },
     { id: 'calendar', label: 'Календарь', icon: CalendarDays },
+  ];
+
+  const adminNavItems = [
+    { id: 'users', label: 'Пользователи', icon: User, permission: 'manage_users' },
+    { id: 'roles', label: 'Роли', icon: Shield, permission: 'manage_roles' },
+    { id: 'tus', label: 'Справочник ТУ', icon: UserCheck, permission: 'manage_tus' },
+    { id: 'audit', label: 'Аудит', icon: FileText, permission: 'view_audit' },
   ];
 
   const currentRole = currentUser ? useStore.getState().roles.find(r => r.id === currentUser.role) : null;
@@ -33,28 +38,32 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-500"><X size={20} /></button>
         </div>
         
-        <nav className="p-4 space-y-1">
-          {navItems.map(item => (
+        <nav className="p-4 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+          {/* Main navigation */}
+          {mainNavItems.map(item => (
             <button key={item.id} onClick={() => { onNavigate(item.id); setSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${currentPage === item.id ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}>
               <item.icon size={18} />{item.label}
             </button>
           ))}
           
-          {hasPermission('manage_tus') && (
-            <div className="pt-2 mt-2 border-t border-gray-100">
-              <TUsModal />
-            </div>
-          )}
-          
-          {hasPermission('settings') && (
-            <button onClick={() => useStore.getState().openSettings()} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">
-              <Settings size={18} /> Настройки
-            </button>
+          {/* Admin navigation */}
+          {adminNavItems.some(item => hasPermission(item.permission)) && (
+            <>
+              <div className="pt-4 mt-4 border-t border-gray-200">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 mb-2">Администрирование</p>
+              </div>
+              {adminNavItems.filter(item => hasPermission(item.permission)).map(item => (
+                <button key={item.id} onClick={() => { onNavigate(item.id); setSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${currentPage === item.id ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  <item.icon size={18} />{item.label}
+                </button>
+              ))}
+            </>
           )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
               <User size={16} className="text-blue-600" />
@@ -109,8 +118,6 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
         </header>
         <main className="p-4 lg:p-6">{children}</main>
       </div>
-      
-      <SettingsModal />
     </div>
   );
 }
