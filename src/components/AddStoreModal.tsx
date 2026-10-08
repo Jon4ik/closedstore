@@ -90,8 +90,12 @@ export default function AddStoreModal() {
                   <DateInput label="Демонтаж" value={form.demolitionDate} onChange={v => setForm({ ...form, demolitionDate: v })} />
                 </>
               )}
-              <DateInput label="Монтаж" value={form.installationDate} onChange={v => setForm({ ...form, installationDate: v })} />
-              <DateInput label="Техническое открытие" value={form.techOpenDate} onChange={v => setForm({ ...form, techOpenDate: v })} />
+              {form.workType !== 'Закрытие' && (
+                <>
+                  <DateInput label="Монтаж" value={form.installationDate} onChange={v => setForm({ ...form, installationDate: v })} />
+                  <DateInput label="Техническое открытие" value={form.techOpenDate} onChange={v => setForm({ ...form, techOpenDate: v })} />
+                </>
+              )}
             </div>
           </div>
           <div>
