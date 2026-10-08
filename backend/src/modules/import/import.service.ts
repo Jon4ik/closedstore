@@ -6,9 +6,9 @@ import * as ExcelJS from 'exceljs';
 export class ImportService {
   constructor(private prisma: PrismaService) {}
 
-  async importFromExcel(buffer: Buffer | Uint8Array, userId: string, userName: string) {
+  async importFromExcel(buffer: any, userId: string, userName: string) {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer as Buffer);
+    await workbook.xlsx.load(buffer);
     const worksheet = workbook.worksheets[0];
     
     const results = { imported: 0, errors: [] as any[] };
@@ -46,8 +46,10 @@ export class ImportService {
     // Log import
     await this.prisma.auditLog.create({
       data: {
-        userId, userName,
-        action: 'import', field: 'projects',
+        userId,
+        userName,
+        action: 'import',
+        field: 'projects',
         newValue: String(results.imported),
         details: `Импортировано ${results.imported} объектов`,
       },

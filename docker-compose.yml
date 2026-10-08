@@ -11,7 +11,7 @@ services:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
@@ -83,7 +83,7 @@ services:
       - tools
 
 volumes:
-  postgres_data:
+  postgres_
     driver: local
 
 networks:

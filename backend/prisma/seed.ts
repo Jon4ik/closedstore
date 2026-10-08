@@ -13,7 +13,7 @@ async function main() {
     create: {
       name: 'Администратор',
       description: 'Полный доступ ко всем функциям системы',
-      permissions: ['view', 'create', 'edit', 'delete', 'import', 'export', 'add_comments', 'manage_users', 'manage_roles', 'manage_tus', 'view_audit', 'settings'],
+      permissions: ['view', 'edit', 'view_closures', 'create_closures', 'edit_closures', 'delete_closures', 'view_openings', 'create_openings', 'edit_openings', 'delete_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'delete_comments', 'view_users', 'manage_users', 'view_roles', 'manage_roles', 'view_tus', 'manage_tus', 'view_audit', 'clear_audit', 'settings'],
       isSystem: true,
     },
   });
@@ -24,7 +24,7 @@ async function main() {
     create: {
       name: 'Менеджер',
       description: 'Управление объектами и импорт/экспорт',
-      permissions: ['view', 'create', 'edit', 'import', 'export', 'add_comments'],
+      permissions: ['view', 'edit', 'view_closures', 'create_closures', 'edit_closures', 'view_openings', 'create_openings', 'edit_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'view_tus'],
       isSystem: true,
     },
   });
@@ -35,7 +35,7 @@ async function main() {
     create: {
       name: 'Наблюдатель',
       description: 'Только просмотр данных',
-      permissions: ['view'],
+      permissions: ['view', 'view_closures', 'view_openings', 'view_calendar', 'view_dashboard', 'view_comments', 'view_tus'],
       isSystem: true,
     },
   });
@@ -84,9 +84,9 @@ async function main() {
 
   // Create TUs
   const tus = [
-    { fullName: 'Зотов Денис', position: 'Технический управляющий', phone: '+7 (999) 123-45-67', email: 'zotov@company.ru' },
-    { fullName: 'Дрямова Валентина', position: 'Технический управляющий', phone: '+7 (999) 234-56-78', email: 'dryamova@company.ru' },
-    { fullName: 'Беляева Анна', position: 'Технический управляющий', phone: '+7 (999) 345-67-89', email: 'belyaeva@company.ru' },
+    { fullName: 'Зотов Денис', position: 'Территориальный управляющий', phone: '+7 (999) 123-45-67', email: 'zotov@company.ru' },
+    { fullName: 'Дрямова Валентина', position: 'Территориальный управляющий', phone: '+7 (999) 234-56-78', email: 'dryamova@company.ru' },
+    { fullName: 'Беляева Анна', position: 'Территориальный управляющий', phone: '+7 (999) 345-67-89', email: 'belyaeva@company.ru' },
   ];
 
   for (const tu of tus) {

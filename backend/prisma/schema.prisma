@@ -51,7 +51,7 @@ model Role {
 model TU {
   id        String   @id @default(uuid())
   fullName  String
-  position  String   @default("Технический управляющий")
+  position  String   @default("Территориальный управляющий")
   phone     String?
   email     String?
   isActive  Boolean  @default(true)
@@ -71,7 +71,7 @@ model StoreProject {
   storeNumber      String
   address          String
   city             String
-  workType         String    // 'Закрытие' | 'Реконструкция'
+  workType         String    // 'Закрытие' | 'Реконструкция' | 'Открытие'
   closureDate      DateTime?
   demolitionDate   DateTime?
   installationDate DateTime?

@@ -1,43 +1,5 @@
-# Dependencies
 node_modules/
-backend/node_modules/
-
-# Build
-dist/
-backend/dist/
-
-# Environment
-.env
-.env.local
-.env.production
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Docker
-docker-compose.override.yml
-
-# Logs
-*.log
-npm-debug.log*
-
-# Testing
-coverage/
-.nyc_output/
-
-# Prisma
-backend/prisma/*.db
-backend/prisma/migrations/
-
-# Misc
-*.tgz
-.cache/
 .next/
+dist/
 build/
+*.log
