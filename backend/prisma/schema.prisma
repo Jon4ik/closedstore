@@ -1,0 +1,134 @@
+// Prisma Schema для системы "Реконструкция — Закрытие"
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Пользователи системы (для авторизации)
+// ============================================
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String   // bcrypt hash
+  fullName  String
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments  Comment[]
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+// ============================================
+// Роли с гранулярными правами
+// ============================================
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String   @default("")
+  permissions String[] // ['view', 'create', 'edit', 'delete', 'import', 'export', 'add_comments', 'manage_users', 'manage_roles', 'manage_tus', 'view_audit', 'settings']
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  users User[]
+
+  @@map("roles")
+}
+
+// ============================================
+// Технические управляющие (ТУ)
+// ============================================
+model TU {
+  id        String   @id @default(uuid())
+  fullName  String
+  position  String   @default("Технический управляющий")
+  phone     String?
+  email     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects StoreProject[]
+
+  @@map("tus")
+}
+
+// ============================================
+// Объекты (магазины)
+// ============================================
+model StoreProject {
+  id               String    @id @default(uuid())
+  storeNumber      String
+  address          String
+  city             String
+  workType         String    // 'Закрытие' | 'Реконструкция'
+  closureDate      DateTime?
+  demolitionDate   DateTime?
+  installationDate DateTime?
+  techOpenDate     DateTime?
+  tuId             String
+  tu               TU        @relation(fields: [tuId], references: [id])
+  rowColor         String    @default("")
+  comment          String    @default("")
+  status           String    @default("Запланирован")
+  manualStatus     String?
+  isDeleted        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  createdBy        String
+
+  comments  Comment[]
+  auditLogs AuditLog[]
+
+  @@map("store_projects")
+}
+
+// ============================================
+// Комментарии к объектам
+// ============================================
+model Comment {
+  id        String   @id @default(uuid())
+  storeId   String
+  store     StoreProject @relation(fields: [storeId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  userName  String
+  text      String
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+  @@map("comments")
+}
+
+// ============================================
+// Аудит всех действий в системе
+// ============================================
+model AuditLog {
+  id        String   @id @default(uuid())
+  storeId   String?
+  store     StoreProject? @relation(fields: [storeId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  userName  String
+  timestamp DateTime @default(now())
+  action    String   // 'login', 'logout', 'create', 'update', 'delete', 'import', 'create_user', 'update_user', 'add_comment'
+  field     String
+  oldValue  String   @default("")
+  newValue  String   @default("")
+  details   String   @default("")
+
+  @@index([userId])
+  @@index([storeId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
