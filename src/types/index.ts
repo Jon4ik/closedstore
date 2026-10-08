@@ -1,4 +1,4 @@
-export type WorkType = 'Закрытие' | 'Реконструкция';
+export type WorkType = 'Закрытие' | 'Реконструкция' | 'Открытие';
 
 export type StageStatus = 'completed' | 'current' | 'overdue' | 'planned' | 'not_started';
 

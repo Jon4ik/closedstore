@@ -123,7 +123,11 @@ export default function StoreTable() {
                     <td className="px-4 py-3 font-semibold text-blue-700">{project.storeNumber}</td>
                     <td className="px-4 py-3 text-gray-700 max-w-[250px]"><div className="truncate" title={project.address}>{project.address}</div></td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${project.workType === 'Закрытие' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'}`}>{project.workType}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        project.workType === 'Закрытие' ? 'bg-orange-100 text-orange-700' : 
+                        project.workType === 'Открытие' ? 'bg-green-100 text-green-700' : 
+                        'bg-purple-100 text-purple-700'
+                      }`}>{project.workType}</span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-gray-700">{project.closureDate || '—'}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-gray-700">{project.demolitionDate || '—'}</td>

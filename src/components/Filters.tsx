@@ -37,6 +37,7 @@ export default function Filters() {
             <option value="">Все типы</option>
             <option value="Закрытие">Закрытие</option>
             <option value="Реконструкция">Реконструкция</option>
+            <option value="Открытие">Открытие</option>
           </select>
         </div>
         <div>

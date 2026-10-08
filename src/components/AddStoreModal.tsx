@@ -6,7 +6,7 @@ import { parseDateInput } from '../utils/statusCalculator';
 export default function AddStoreModal() {
   const { isAddModalOpen, closeAddModal, addProject, tus, projects, currentUser } = useStore();
   const [form, setForm] = useState({
-    storeNumber: '', address: '', city: '', workType: 'Закрытие' as 'Закрытие' | 'Реконструкция',
+    storeNumber: '', address: '', city: '', workType: 'Закрытие' as 'Закрытие' | 'Реконструкция' | 'Открытие',
     closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '',
     tuId: tus[0]?.id || '', comment: '', rowColor: '',
   });
@@ -38,7 +38,7 @@ export default function AddStoreModal() {
       tuId: form.tuId, rowColor: form.rowColor, comment: form.comment,
       isDeleted: false, manualStatus: null, createdBy: currentUser?.id || 'system',
     });
-    setForm({ storeNumber: '', address: '', city: '', workType: 'Закрытие', closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '', tuId: tus[0]?.id || '', comment: '', rowColor: '' });
+    setForm({ storeNumber: '', address: '', city: '', workType: 'Закрытие' as 'Закрытие' | 'Реконструкция' | 'Открытие', closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '', tuId: tus[0]?.id || '', comment: '', rowColor: '' });
     closeAddModal();
   };
 
@@ -67,6 +67,7 @@ export default function AddStoreModal() {
               <select value={form.workType} onChange={e => setForm({ ...form, workType: e.target.value as any })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="Закрытие">Закрытие</option>
                 <option value="Реконструкция">Реконструкция</option>
+                <option value="Открытие">Открытие</option>
               </select>
             </div>
           </div>

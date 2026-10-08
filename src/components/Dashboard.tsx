@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
 import { calculateProjectStatus, getNearestEvent, formatDate } from '../utils/statusCalculator';
-import { AlertTriangle, CheckCircle2, Clock, Package, CalendarClock, TrendingUp, Store, Wrench, Ban } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, Package, CalendarClock, TrendingUp, Store, Wrench, Ban, DoorOpen } from 'lucide-react';
 
 export default function Dashboard() {
   const { getDashboardStats, getUpcomingEvents, projects, openCard, tus } = useStore();
@@ -14,6 +14,7 @@ export default function Dashboard() {
     { label: 'Всего объектов', value: stats.total, icon: Store, color: 'bg-blue-50 text-blue-700' },
     { label: 'Закрытий', value: stats.closures, icon: Package, color: 'bg-orange-50 text-orange-700' },
     { label: 'Реконструкций', value: stats.reconstructions, icon: Wrench, color: 'bg-purple-50 text-purple-700' },
+    { label: 'Открытий', value: stats.openings, icon: DoorOpen, color: 'bg-green-50 text-green-700' },
     { label: 'В работе', value: stats.inProgress, icon: TrendingUp, color: 'bg-green-50 text-green-700' },
     { label: 'Просрочено', value: stats.overdue, icon: AlertTriangle, color: 'bg-red-50 text-red-700' },
     { label: 'Завершено', value: stats.completed, icon: CheckCircle2, color: 'bg-emerald-50 text-emerald-700' },
@@ -97,7 +98,11 @@ export default function Dashboard() {
                   <tr key={project.id} onClick={() => openCard(project.id)} className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer" style={{ backgroundColor: project.rowColor || undefined }}>
                     <td className="px-4 py-3 font-medium">{project.storeNumber}</td>
                     <td className="px-4 py-3 text-gray-600 max-w-[200px] truncate">{project.address}</td>
-                    <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${project.workType === 'Закрытие' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'}`}>{project.workType}</span></td>
+                    <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${
+                      project.workType === 'Закрытие' ? 'bg-orange-100 text-orange-700' : 
+                      project.workType === 'Открытие' ? 'bg-green-100 text-green-700' : 
+                      'bg-purple-100 text-purple-700'
+                    }`}>{project.workType}</span></td>
                     <td className="px-4 py-3"><StatusBadge status={status} /></td>
                     <td className="px-4 py-3 text-gray-600">{getTUName(project.tuId)}</td>
                     <td className="px-4 py-3 text-gray-600">{event ? `${event.name} — ${formatDate(event.date)}` : '—'}</td>

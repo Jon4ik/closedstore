@@ -79,7 +79,7 @@ interface AppState {
 
   // Getters
   getFilteredProjects: () => StoreProject[];
-  getDashboardStats: () => { total: number; closures: number; reconstructions: number; inProgress: number; overdue: number; completed: number; cancelled: number; upcoming7days: number; };
+  getDashboardStats: () => { total: number; closures: number; reconstructions: number; openings: number; inProgress: number; overdue: number; completed: number; cancelled: number; upcoming7days: number; };
   getNotifications: () => Notification[];
   getUpcomingEvents: () => { storeNumber: string; stage: string; date: Date; daysUntil: number; projectId: string }[];
   getProjectComments: (storeId: string) => Comment[];
@@ -535,6 +535,7 @@ export const useStore = create<AppState>((set, get) => {
         total: projects.length,
         closures: projects.filter(p => p.workType === 'Закрытие').length,
         reconstructions: projects.filter(p => p.workType === 'Реконструкция').length,
+        openings: projects.filter(p => p.workType === 'Открытие').length,
         inProgress: projects.filter(p => { const s = calculateProjectStatus(p); return s !== 'Завершено' && s !== 'Просрочено' && s !== 'Запланирован' && s !== 'Отменено'; }).length,
         overdue: projects.filter(p => calculateProjectStatus(p) === 'Просрочено').length,
         completed: projects.filter(p => calculateProjectStatus(p) === 'Завершено').length,
