@@ -2,11 +2,19 @@
 
 Система управления графиками реконструкций и закрытий магазинов.
 
+## 📋 Архитектура
+
+Система состоит из:
+- **Frontend**: React + TypeScript + Tailwind CSS (порт 5001)
+- **Backend**: NestJS + Prisma (порт 4000)
+- **PostgreSQL**: внешняя база данных (настраивается отдельно)
+
 ## 🚀 Быстрый старт (Production)
 
 ### Требования
 - Docker 20.10+
 - Docker Compose 2.0+
+- PostgreSQL 13+ (внешняя база данных)
 - 2 GB RAM, 2 CPU cores
 
 ### 1. Клонирование и настройка
@@ -19,26 +27,40 @@ cp .env.example .env
 
 ### 2. Настройка .env
 
-Отредактируйте `.env` — укажите пароль PostgreSQL и секрет JWT:
+Отредактируйте `.env` — укажите настройки PostgreSQL и секрет JWT:
 
 ```env
-POSTGRES_PASSWORD=your_secure_password_here
+DB_HOST=your-postgres-host
+DB_PORT=5432
+DB_NAME=store_reconstruction
+DB_USER=postgres
+DB_PASSWORD=your_secure_password_here
 JWT_SECRET=your_jwt_secret_here_change_this
 DOMAIN=reconstruction.yourcompany.ru
 ```
 
-### 3. Запуск
+### 3. Инициализация базы данных
+
+```bash
+# Создайте базу данных
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
+
+# Примените миграции и seed
+chmod +x init-db.sh
+./init-db.sh
+```
+
+### 4. Запуск
 
 ```bash
 docker compose up -d
 ```
 
 Система будет доступна:
-- **Frontend**: http://your-server-ip (порт 80)
-- **API**: http://your-server-ip/api
-- **pgAdmin**: http://your-server-ip:5050 (опционально)
+- **Frontend**: http://your-server-ip:5001
+- **API**: http://your-server-ip:4000/api
 
-### 4. Первый вход
+### 5. Первый вход
 
 | Логин | Пароль | Роль |
 |-------|--------|------|
@@ -48,6 +70,21 @@ docker compose up -d
 
 **⚠️ Сразу после первого входа смените пароли!**
 
+## 🗄 Внешняя база данных
+
+Система использует внешнюю PostgreSQL базу данных. Убедитесь, что:
+- PostgreSQL запущен и доступен
+- База данных создана
+- Пользователь имеет необходимые права
+- Порт 5432 доступен с сервера приложения
+
+Для инициализации используйте скрипт `init-db.sh` или выполните вручную:
+```bash
+cd backend
+npx prisma migrate deploy
+npx prisma db seed
+```
+
 ---
 
 ## 📋 Архитектура
@@ -55,15 +92,17 @@ docker compose up -d
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                     Nginx (Reverse Proxy)                │
-│                     Port 80 / 443                        │
+│                     Port 5001                            │
 ├────────────────────────┬────────────────────────────────┤
 │   Frontend (React)     │   Backend (NestJS)             │
-│   Port 3000            │   Port 4000                    │
+│   Port 5001            │   Port 4000                    │
 │   /                    │   /api/*                       │
-├────────────────────────┴────────────────────────────────┤
-│              PostgreSQL 15                               │
-│              Port 5432                                   │
-└─────────────────────────────────────────────────────────┘
+└────────────────────────┴────────────────────────────────┘
+                      ↕
+         ┌────────────────────────┐
+         │  PostgreSQL (external) │
+         │  Port 5432             │
+         └────────────────────────┘
 ```
 
 ## 🗂 Структура проекта
@@ -94,8 +133,11 @@ store-reconstruction/
 │   │   └── main.ts
 │   ├── Dockerfile
 │   └── package.json
+├── nginx/                    # Nginx конфигурация
+│   └── nginx.conf
 ├── docker-compose.yml
 ├── .env.example
+├── init-db.sh               # Скрипт инициализации БД
 └── README.md
 ```
 
@@ -120,7 +162,11 @@ cd store-reconstruction
 
 # Настройка
 cp .env.example .env
-nano .env  # Укажите пароли и домен
+nano .env  # Укажите настройки PostgreSQL и домен
+
+# Инициализация базы данных
+chmod +x init-db.sh
+./init-db.sh
 
 # Запуск
 docker compose up -d
@@ -140,18 +186,18 @@ sudo apt install certbot -y
 sudo certbot certonly --standalone -d reconstruction.yourcompany.ru
 
 # Обновите nginx.conf для SSL
-# Перезапустите
-docker compose restart nginx
+# Перезапустите frontend
+docker compose restart frontend
 ```
 
 ### Резервное копирование
 
 ```bash
 # Создать бэкап БД
-docker compose exec postgres pg_dump -U postgres store_reconstruction > backup_$(date +%Y%m%d).sql
+pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER $DB_NAME > backup_$(date +%Y%m%d).sql
 
 # Восстановить из бэкапа
-cat backup.sql | docker compose exec -T postgres psql -U postgres store_reconstruction
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME < backup.sql
 ```
 
 ### Мониторинг
@@ -160,7 +206,6 @@ cat backup.sql | docker compose exec -T postgres psql -U postgres store_reconstr
 # Логи
 docker compose logs -f frontend
 docker compose logs -f backend
-docker compose logs -f postgres
 
 # Статус сервисов
 docker compose ps
@@ -178,11 +223,15 @@ docker stats
 3. Используйте **SSL** (Let's Encrypt) для production
 4. Настройте **firewall** (ufw):
    ```bash
-   sudo ufw allow 80
-   sudo ufw allow 443
+   sudo ufw allow 5001  # Frontend
+   sudo ufw allow 443   # HTTPS
    sudo ufw enable
    ```
-5. Регулярно **обновляйте** систему и контейнеры:
+5. **Защитите PostgreSQL**:
+   - Используйте SSL для подключения к БД
+   - Ограничьте доступ по IP
+   - Регулярно меняйте пароли
+6. Регулярно **обновляйте** систему и контейнеры:
    ```bash
    docker compose pull
    docker compose up -d
@@ -214,6 +263,11 @@ docker stats
 ---
 
 ## 🗄 База данных
+
+Система использует внешнюю PostgreSQL базу данных. Убедитесь, что:
+- PostgreSQL 13+ установлен и запущен
+- База данных создана
+- Пользователь имеет необходимые права
 
 ### Схема (Prisma)
 
@@ -249,7 +303,7 @@ model StoreProject {
   storeNumber     String
   address         String
   city            String
-  workType        String    // 'Закрытие' | 'Реконструкция'
+  workType        String    // 'Закрытие' | 'Реконструкция' | 'Открытие'
   closureDate     DateTime?
   demolitionDate  DateTime?
   installationDate DateTime?
@@ -289,13 +343,19 @@ model AuditLog {
 
 ```bash
 # Применить миграции
-docker compose exec backend npx prisma migrate deploy
+cd backend
+npx prisma migrate deploy
 
 # Создать новую миграцию
-docker compose exec backend npx prisma migrate dev --name init
+cd backend
+npx prisma migrate dev --name init
 
 # Seed данные
-docker compose exec backend npx prisma db seed
+cd backend
+npx prisma db seed
+
+# Или используйте скрипт инициализации
+./init-db.sh
 ```
 
 ---
@@ -369,13 +429,20 @@ npm install
 npx prisma migrate dev
 npm run start:dev  # http://localhost:4000
 
-# PostgreSQL (локально)
-docker compose up postgres
+# PostgreSQL (локально, если нужно)
+# Установите PostgreSQL локально или используйте Docker
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=store_reconstruction postgres:15
 ```
 
 ---
 
 ## 📝 Changelog
+
+### v1.1.0
+- Убрана встроенная PostgreSQL (используется внешняя БД)
+- Добавлен скрипт инициализации базы данных
+- Порт frontend изменён на 5001
+- Улучшена документация
 
 ### v1.0.0
 - Полный функционал управления объектами
@@ -394,6 +461,7 @@ docker compose up postgres
 
 При возникновении проблем:
 1. Проверьте логи: `docker compose logs`
-2. Убедитесь что порты 80, 5432 свободны
+2. Убедитесь что порты 5001, 4000 свободны
 3. Проверьте конфигурацию `.env`
-4. Перезапустите сервисы: `docker compose restart`
+4. Проверьте доступность PostgreSQL
+5. Перезапустите сервисы: `docker compose restart`
