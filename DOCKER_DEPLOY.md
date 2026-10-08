@@ -52,17 +52,34 @@ DOMAIN=reconstruction.yourcompany.ru
 # Создайте базу данных в PostgreSQL
 psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
 
-# Запустите скрипт инициализации
+# Сделайте скрипт исполняемым (только первый раз)
 chmod +x init-db.sh
+
+# Запустите инициализацию (рекомендуется Docker метод)
 ./init-db.sh
+
+# Или используйте SQL метод (без Docker)
+./init-db.sh --sql
 ```
 
-Или вручную:
+**Методы инициализации:**
+- `./init-db.sh` или `./init-db.sh --docker` — через Docker и Prisma (рекомендуется)
+- `./init-db.sh --sql` — через SQL скрипт (быстрый способ для тестирования)
+
+**Что делает скрипт:**
+- Загружает переменные из `.env` файла
+- Проверяет подключение к PostgreSQL
+- Применяет миграции Prisma
+- Запускает seed данные (роли, пользователи, ТУ)
+
+Или выполните вручную:
 ```bash
 cd backend
 npx prisma migrate deploy
 npx prisma db seed
 ```
+
+Подробнее см. [INIT_DB_README.md](INIT_DB_README.md)
 
 ### 4. Запуск Docker Compose
 

@@ -45,10 +45,21 @@ DOMAIN=reconstruction.yourcompany.ru
 # Создайте базу данных
 psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
 
-# Примените миграции и seed
+# Сделайте скрипт исполняемым (только первый раз)
 chmod +x init-db.sh
+
+# Запустите инициализацию (рекомендуется Docker метод)
 ./init-db.sh
+
+# Или используйте SQL метод (без Docker)
+./init-db.sh --sql
 ```
+
+**Методы инициализации:**
+- `./init-db.sh` или `./init-db.sh --docker` — через Docker и Prisma (рекомендуется)
+- `./init-db.sh --sql` — через SQL скрипт (быстрый способ для тестирования)
+
+Подробнее см. [INIT_DB_README.md](INIT_DB_README.md)
 
 ### 4. Запуск
 
@@ -78,12 +89,32 @@ docker compose up -d
 - Пользователь имеет необходимые права
 - Порт 5432 доступен с сервера приложения
 
-Для инициализации используйте скрипт `init-db.sh` или выполните вручную:
+### Инициализация базы данных
+
+Используйте скрипт `init-db.sh` для автоматической инициализации:
+
+```bash
+# Docker метод (рекомендуется)
+./init-db.sh --docker
+
+# SQL метод (без Docker)
+./init-db.sh --sql
+```
+
+**Что делает скрипт:**
+- Загружает переменные из `.env` файла
+- Проверяет подключение к PostgreSQL
+- Применяет миграции Prisma
+- Запускает seed данные (роли, пользователи, ТУ)
+
+Или выполните вручную:
 ```bash
 cd backend
 npx prisma migrate deploy
 npx prisma db seed
 ```
+
+Подробнее см. [INIT_DB_README.md](INIT_DB_README.md)
 
 ---
 
