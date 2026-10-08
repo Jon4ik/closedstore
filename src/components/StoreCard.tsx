@@ -8,6 +8,7 @@ export default function StoreCard() {
   const [editData, setEditData] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [activeTab, setActiveTab] = useState<'main' | 'stages' | 'comments'>('main');
 
   const project = projects.find(p => p.id === selectedProjectId);
   if (!project || !isCardOpen) return null;
@@ -79,180 +80,259 @@ export default function StoreCard() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Status */}
-          <div className={`rounded-xl border px-4 py-3 ${mainStatusColors[status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide opacity-70">Текущий статус</p>
-                <p className="text-lg font-bold">{status}</p>
-              </div>
-              {overdueInfo && (
-                <div className="flex items-center gap-2 bg-red-200/50 px-3 py-1.5 rounded-lg">
-                  <AlertTriangle size={16} className="text-red-700" />
-                  <span className="text-sm font-medium text-red-800">Просрочка: {overdueInfo.days} дн.</span>
-                </div>
-              )}
-              {nearestEvent && !overdueInfo && (
-                <div className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-lg">
-                  <Clock size={16} />
-                  <span className="text-sm font-medium">{nearestEvent.daysUntil === 0 ? 'Сегодня' : `Через ${nearestEvent.daysUntil} дн.`}: {nearestEvent.name}</span>
-                </div>
-              )}
-            </div>
+        {/* Tabs */}
+        <div className="border-b border-gray-200 px-6 flex-shrink-0">
+          <div className="flex gap-6">
+            <button
+              onClick={() => setActiveTab('main')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'main'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Основное
+            </button>
+            <button
+              onClick={() => setActiveTab('stages')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'stages'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Этапы
+            </button>
+            <button
+              onClick={() => setActiveTab('comments')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'comments'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Комментарии и история
+            </button>
           </div>
+        </div>
 
-          {/* Info */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Адрес</label>
-                {isEditing ? (
-                  <input type="text" value={editData?.address || project.address} onChange={e => setEditData({ ...editData, address: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                ) : (
-                  <p className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{project.address}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">ТУ (Территориальный управляющий)</label>
-                {isEditing ? (
-                  <select value={editData?.tuId || project.tuId} onChange={e => setEditData({ ...editData, tuId: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                    {tus.filter(t => t.isActive).map(t => <option key={t.id} value={t.id}>{t.fullName}</option>)}
-                  </select>
-                ) : (
-                  <div className="bg-gray-50 px-3 py-2 rounded-lg">
-                    <p className="text-sm font-medium text-gray-900">{tu?.fullName || '—'}</p>
-                    {tu?.phone && <p className="text-xs text-gray-500">{tu.phone}</p>}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Tab: Main */}
+          {activeTab === 'main' && (
+            <div className="space-y-6">
+              {/* Status */}
+              <div className={`rounded-xl border px-4 py-3 ${mainStatusColors[status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide opacity-70">Текущий статус</p>
+                    <p className="text-lg font-bold">{status}</p>
                   </div>
-                )}
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Тип работ</label>
-                <p className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{project.workType}</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Комментарий</label>
-                {isEditing ? (
-                  <textarea value={editData?.comment || ''} onChange={e => setEditData({ ...editData, comment: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" rows={3} />
-                ) : (
-                  <p className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg min-h-[60px]">{project.comment || '—'}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Цвет строки</label>
-                {isEditing ? (
-                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
-                    {rowColors.map(color => (
-                      <button key={color || 'none'} onClick={() => setEditData({ ...editData, rowColor: color })}
-                        className={`w-7 h-7 rounded border-2 ${editData?.rowColor === color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}`}
-                        style={{ backgroundColor: color || '#fff' }} title={color || 'Без цвета'} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
-                    <div className="w-7 h-7 rounded border border-gray-300" style={{ backgroundColor: project.rowColor || '#fff' }} />
-                    <span className="text-xs text-gray-500">{project.rowColor || 'Без цвета'}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div className="bg-gray-50 rounded-xl p-4">
-            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Clock size={18} className="text-blue-600" />Таймлайн</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {stages.map((stage, idx) => (
-                <div key={idx} className="bg-white rounded-lg p-3 border border-gray-200">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${stage.status === 'completed' ? 'bg-green-500' : stage.status === 'current' ? 'bg-yellow-500 animate-pulse' : stage.status === 'overdue' ? 'bg-red-500' : stage.status === 'planned' ? 'bg-blue-500' : 'bg-gray-300'}`} />
-                      <p className={`text-sm font-medium ${stage.status === 'current' ? 'text-gray-900' : stage.status === 'overdue' ? 'text-red-700' : 'text-gray-700'}`}>{stage.name}</p>
+                  {overdueInfo && (
+                    <div className="flex items-center gap-2 bg-red-200/50 px-3 py-1.5 rounded-lg">
+                      <AlertTriangle size={16} className="text-red-700" />
+                      <span className="text-sm font-medium text-red-800">Просрочка: {overdueInfo.days} дн.</span>
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${stage.status === 'completed' ? 'bg-green-100 text-green-700' : stage.status === 'current' ? 'bg-yellow-100 text-yellow-700' : stage.status === 'overdue' ? 'bg-red-100 text-red-700' : stage.status === 'planned' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>{getStatusLabel(stage.status)}</span>
-                  </div>
-                  {isEditing ? (
-                    <input type="text" placeholder="ДД.ММ.ГГГГ" value={editData?.[getStageField(stage.name)] || ''} onChange={e => setEditData({ ...editData, [getStageField(stage.name)]: e.target.value })} className="w-full text-sm border border-gray-200 rounded px-2 py-1.5" />
-                  ) : (
-                    <p className={`text-sm ${stage.date ? 'text-gray-700' : 'text-gray-400 italic'}`}>{stage.date || 'Не назначено'}</p>
                   )}
-                  {stage.daysOverdue !== null && <p className="text-xs text-red-600 font-medium mt-1">Просрочено на {stage.daysOverdue} дн.</p>}
+                  {nearestEvent && !overdueInfo && (
+                    <div className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-lg">
+                      <Clock size={16} />
+                      <span className="text-sm font-medium">{nearestEvent.daysUntil === 0 ? 'Сегодня' : `Через ${nearestEvent.daysUntil} дн.`}: {nearestEvent.name}</span>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Manual status */}
-          {isEditing && (
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Ручная установка статуса</label>
-              <select value={editData?.manualStatus || ''} onChange={e => setEditData({ ...editData, manualStatus: e.target.value || null })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                <option value="">Автоматически</option>
-                <option value="Запланирован">Запланирован</option>
-                <option value="Закрыт для покупателей">Закрыт для покупателей</option>
-                <option value="Демонтаж">Демонтаж</option>
-                <option value="Монтаж">Монтаж</option>
-                <option value="Открытие">Открытие</option>
-                <option value="Техническое открытие">Техническое открытие</option>
-                <option value="Завершено">Завершено</option>
-                <option value="Отменено">Отменено</option>
-              </select>
+              {/* Info */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Адрес</label>
+                    {isEditing ? (
+                      <input type="text" value={editData?.address || project.address} onChange={e => setEditData({ ...editData, address: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{project.address}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">ТУ (Территориальный управляющий)</label>
+                    {isEditing ? (
+                      <select value={editData?.tuId || project.tuId} onChange={e => setEditData({ ...editData, tuId: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                        {tus.filter(t => t.isActive).map(t => <option key={t.id} value={t.id}>{t.fullName}</option>)}
+                      </select>
+                    ) : (
+                      <div className="bg-gray-50 px-3 py-2 rounded-lg">
+                        <p className="text-sm font-medium text-gray-900">{tu?.fullName || '—'}</p>
+                        {tu?.phone && <p className="text-xs text-gray-500">{tu.phone}</p>}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Тип работ</label>
+                    <p className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{project.workType}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Комментарий</label>
+                    {isEditing ? (
+                      <textarea value={editData?.comment || ''} onChange={e => setEditData({ ...editData, comment: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" rows={3} />
+                    ) : (
+                      <p className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg min-h-[60px]">{project.comment || '—'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Цвет строки</label>
+                    {isEditing ? (
+                      <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                        {rowColors.map(color => (
+                          <button key={color || 'none'} onClick={() => setEditData({ ...editData, rowColor: color })}
+                            className={`w-7 h-7 rounded border-2 ${editData?.rowColor === color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}`}
+                            style={{ backgroundColor: color || '#fff' }} title={color || 'Без цвета'} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                        <div className="w-7 h-7 rounded border border-gray-300" style={{ backgroundColor: project.rowColor || '#fff' }} />
+                        <span className="text-xs text-gray-500">{project.rowColor || 'Без цвета'}</span>
+                      </div>
+                    )}
+                  </div>
+                  {isEditing && (
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 mb-1 block">Ручная установка статуса</label>
+                      <select value={editData?.manualStatus || ''} onChange={e => setEditData({ ...editData, manualStatus: e.target.value || null })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                        <option value="">Автоматически</option>
+                        <option value="Запланирован">Запланирован</option>
+                        <option value="Закрыт для покупателей">Закрыт для покупателей</option>
+                        <option value="Демонтаж">Демонтаж</option>
+                        <option value="Монтаж">Монтаж</option>
+                        <option value="Открытие">Открытие</option>
+                        <option value="Техническое открытие">Техническое открытие</option>
+                        <option value="Завершено">Завершено</option>
+                        <option value="Отменено">Отменено</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Comments */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Tab: Stages (Timeline) */}
+          {activeTab === 'stages' && (
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><MessageSquare size={18} className="text-blue-600" />Комментарии ({projectComments.length})</h3>
-              <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
-                {projectComments.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">Нет комментариев</p>
-                ) : projectComments.map(c => (
-                  <div key={c.id} className="bg-gray-50 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-gray-700">{c.userName}</span>
-                      <span className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleString('ru-RU')}</span>
+              <h3 className="font-semibold text-gray-900 mb-6 flex items-center gap-2"><Clock size={18} className="text-blue-600" />Таймлайн этапов</h3>
+              <div className="space-y-0">
+                {stages.map((stage, idx) => (
+                  <div key={idx} className="flex items-start gap-4">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-4 h-4 rounded-full border-2 ${
+                        stage.status === 'completed' ? 'bg-green-500 border-green-500' :
+                        stage.status === 'current' ? 'bg-yellow-500 border-yellow-500 animate-pulse' :
+                        stage.status === 'overdue' ? 'bg-red-500 border-red-500' :
+                        stage.status === 'planned' ? 'bg-blue-500 border-blue-500' :
+                        'bg-white border-gray-300'
+                      }`} />
+                      {idx < stages.length - 1 && (
+                        <div className={`w-0.5 h-16 ${stage.status === 'completed' ? 'bg-green-300' : 'bg-gray-200'}`} />
+                      )}
                     </div>
-                    <p className="text-sm text-gray-700">{c.text}</p>
+                    <div className="flex-1 pb-8">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className={`text-sm font-medium ${
+                          stage.status === 'current' ? 'text-gray-900' :
+                          stage.status === 'overdue' ? 'text-red-700' :
+                          'text-gray-600'
+                        }`}>
+                          {stage.name}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            stage.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            stage.status === 'current' ? 'bg-yellow-100 text-yellow-700' :
+                            stage.status === 'overdue' ? 'bg-red-100 text-red-700' :
+                            stage.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-500'
+                          }`}>
+                            {getStatusLabel(stage.status)}
+                          </span>
+                          {stage.daysOverdue !== null && (
+                            <span className="text-xs text-red-600 font-medium">+{stage.daysOverdue} дн.</span>
+                          )}
+                        </div>
+                      </div>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          placeholder="ДД.ММ.ГГГГ"
+                          value={editData?.[getStageField(stage.name)] || ''}
+                          onChange={e => setEditData({ ...editData, [getStageField(stage.name)]: e.target.value })}
+                          className="text-sm border border-gray-200 rounded px-2 py-1 w-32"
+                        />
+                      ) : (
+                        <p className={`text-sm ${stage.date ? 'text-gray-700' : 'text-gray-400 italic'}`}>
+                          {stage.date || 'Не назначено'}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
-              {hasPermission('add_comments') || hasPermission('edit') ? (
-                <div className="flex items-center gap-2">
-                  <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Добавить комментарий..." className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
-                  <button onClick={handleAddComment} className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><Send size={16} /></button>
-                </div>
-              ) : null}
             </div>
+          )}
 
-          {/* History */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><History size={18} className="text-gray-600" />История изменений</h3>
-              <button onClick={() => setShowHistory(!showHistory)} className="text-sm text-blue-600 hover:text-blue-700 mb-2">
-                {showHistory ? 'Скрыть' : `Показать (${projectAudit.length})`}
-              </button>
-              {showHistory && (
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {projectAudit.length === 0 ? <p className="text-sm text-gray-400 italic">Нет записей</p> :
-                    projectAudit.map(log => (
-                      <div key={log.id} className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-medium text-gray-700">{log.userName}</span>
-                          <span className="text-xs text-gray-400">{new Date(log.timestamp).toLocaleString('ru-RU')}</span>
-                        </div>
-                        <p className="text-sm"><span className="font-medium">{log.details}:</span>{' '}
-                          <span className="text-red-600 line-through">{log.oldValue}</span>{' → '}<span className="text-green-600">{log.newValue}</span>
-                        </p>
+          {/* Tab: Comments and History */}
+          {activeTab === 'comments' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><MessageSquare size={18} className="text-blue-600" />Комментарии ({projectComments.length})</h3>
+                <div className="space-y-2 max-h-96 overflow-y-auto mb-3">
+                  {projectComments.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">Нет комментариев</p>
+                  ) : projectComments.map(c => (
+                    <div key={c.id} className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-gray-700">{c.userName}</span>
+                        <span className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleString('ru-RU')}</span>
                       </div>
-                    ))
-                  }
+                      <p className="text-sm text-gray-700">{c.text}</p>
+                    </div>
+                  ))}
                 </div>
-              )}
+                {hasPermission('add_comments') || hasPermission('edit') ? (
+                  <div className="flex items-center gap-2">
+                    <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Добавить комментарий..." className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
+                    <button onClick={handleAddComment} className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><Send size={16} /></button>
+                  </div>
+                ) : null}
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><History size={18} className="text-gray-600" />История изменений</h3>
+                <button onClick={() => setShowHistory(!showHistory)} className="text-sm text-blue-600 hover:text-blue-700 mb-2">
+                  {showHistory ? 'Скрыть' : `Показать (${projectAudit.length})`}
+                </button>
+                {showHistory && (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {projectAudit.length === 0 ? <p className="text-sm text-gray-400 italic">Нет записей</p> :
+                      projectAudit.map(log => (
+                        <div key={log.id} className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-gray-700">{log.userName}</span>
+                            <span className="text-xs text-gray-400">{new Date(log.timestamp).toLocaleString('ru-RU')}</span>
+                          </div>
+                          <p className="text-sm"><span className="font-medium">{log.details}:</span>{' '}
+                            <span className="text-red-600 line-through">{log.oldValue}</span>{' → '}<span className="text-green-600">{log.newValue}</span>
+                          </p>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Sticky Footer with Save/Cancel buttons */}
