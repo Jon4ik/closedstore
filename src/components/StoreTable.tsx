@@ -39,40 +39,49 @@ export default function StoreTable() {
   const getTUName = (id: string) => tus.find(t => t.id === id)?.fullName || '—';
 
   const handleExport = () => {
+    console.log('Экспорт начат', { activeTab, projectsCount: sortedProjects.length });
+    
     if (sortedProjects.length === 0) {
       alert('Нет данных для экспорта');
       return;
     }
 
-    const dataToExport = sortedProjects.map(p => {
-      if (activeTab === 'closures') {
-        return {
-          '№ магазина': p.storeNumber,
-          'Адрес': p.address,
-          'Город': p.city,
-          'Тип работ': p.workType,
-          'Закрытие': p.closureDate || '',
-          'Демонтаж': p.demolitionDate || '',
-          'Монтаж': p.installationDate || '',
-          'Тех. открытие': p.techOpenDate || '',
-          'ТУ': getTUName(p.tuId),
-          'Статус': calculateProjectStatus(p),
-        };
-      } else {
-        return {
-          '№ магазина': p.storeNumber,
-          'Адрес': p.address,
-          'Город': p.city,
-          'Монтаж': p.installationDate || '',
-          'Тех. открытие': p.techOpenDate || '',
-          'ТУ': getTUName(p.tuId),
-          'Статус': calculateProjectStatus(p),
-        };
-      }
-    });
+    try {
+      const dataToExport = sortedProjects.map(p => {
+        if (activeTab === 'closures') {
+          return {
+            '№ магазина': p.storeNumber,
+            'Адрес': p.address,
+            'Город': p.city,
+            'Тип работ': p.workType,
+            'Закрытие': p.closureDate || '',
+            'Демонтаж': p.demolitionDate || '',
+            'Монтаж': p.installationDate || '',
+            'Тех. открытие': p.techOpenDate || '',
+            'ТУ': getTUName(p.tuId),
+            'Статус': calculateProjectStatus(p),
+          };
+        } else {
+          return {
+            '№ магазина': p.storeNumber,
+            'Адрес': p.address,
+            'Город': p.city,
+            'Монтаж': p.installationDate || '',
+            'Тех. открытие': p.techOpenDate || '',
+            'ТУ': getTUName(p.tuId),
+            'Статус': calculateProjectStatus(p),
+          };
+        }
+      });
 
-    const filename = activeTab === 'closures' ? 'closures_reconstructions' : 'openings';
-    exportToExcel(dataToExport, filename);
+      console.log('Данные для экспорта:', dataToExport);
+      const filename = activeTab === 'closures' ? 'closures_reconstructions' : 'openings';
+      exportToExcel(dataToExport, filename);
+      console.log('Экспорт завершён');
+    } catch (error) {
+      console.error('Ошибка экспорта:', error);
+      alert('Произошла ошибка при экспорте: ' + (error as Error).message);
+    }
   };
 
   return (
@@ -142,10 +151,11 @@ export default function StoreTable() {
         {hasPermission('export') && (
           <button
             onClick={handleExport}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
-            title="Экспорт XLSX"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+            title="Экспорт в Excel"
           >
             <Download size={16} />
+            <span>Экспорт</span>
           </button>
         )}
         <button
