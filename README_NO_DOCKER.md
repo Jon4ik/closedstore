@@ -296,6 +296,28 @@ npx prisma generate
 cd ..
 ```
 
+### Ошибка: "No command registered for `migrate`"
+
+Это означает, что у вас старая версия Prisma CLI. Обновите:
+
+```bash
+cd backend
+npm install @prisma/client@latest prisma@latest
+npx prisma generate
+cd ..
+```
+
+Или используйте скрипт автоматического определения команды:
+
+```bash
+cd backend
+chmod +x apply-migrations.sh
+./apply-migrations.sh
+cd ..
+```
+
+Подробнее: [TROUBLESHOOTING_PRISMA.md](TROUBLESHOOTING_PRISMA.md)
+
 ### Ошибка: "EADDRINUSE: port already in use"
 
 ```bash

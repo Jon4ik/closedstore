@@ -52,6 +52,13 @@ echo ""
 echo "📦 Установка зависимостей backend..."
 cd backend
 npm install
+
+# Обновление Prisma до последней версии
+echo ""
+echo "🔄 Обновление Prisma до последней версии..."
+npm install @prisma/client@latest prisma@latest
+echo "✅ Prisma обновлен"
+
 echo "✅ Backend зависимости установлены"
 
 # Генерация Prisma client

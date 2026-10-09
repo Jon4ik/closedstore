@@ -56,7 +56,8 @@ echo ""
 # Применение миграций
 echo "📋 Применение миграций Prisma..."
 cd backend
-npx prisma migrate deploy
+chmod +x apply-migrations.sh
+./apply-migrations.sh
 cd ..
 echo "✅ Миграции применены"
 echo ""
