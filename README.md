@@ -9,6 +9,48 @@
 - **Backend**: NestJS + Prisma (порт 4000)
 - **PostgreSQL**: внешняя база данных (настраивается отдельно)
 
+## 🚀 Быстрый старт
+
+### Вариант 1: Без Docker (рекомендуется для WSL)
+
+```bash
+# Установка зависимостей
+chmod +x install.sh
+./install.sh
+
+# Настройка .env
+nano .env
+
+# Инициализация базы данных
+chmod +x init-db.sh
+./init-db.sh --sql
+
+# Запуск проекта
+chmod +x start.sh
+./start.sh
+```
+
+Подробнее: [README_NO_DOCKER.md](README_NO_DOCKER.md)
+
+### Вариант 2: С Docker
+
+```bash
+# Настройка .env
+cp .env.example .env
+nano .env
+
+# Инициализация базы данных
+chmod +x init-db.sh
+./init-db.sh
+
+# Запуск
+docker compose up -d
+```
+
+Подробнее: [DOCKER_DEPLOY.md](DOCKER_DEPLOY.md)
+
+---
+
 ## 🚀 Быстрый старт (Production)
 
 ### Требования
