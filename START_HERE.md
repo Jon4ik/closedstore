@@ -105,6 +105,22 @@ tail -f logs/frontend.log
 
 ## Решение проблем
 
+### Ошибка Prisma: "No command registered for `migrate`"
+
+Это означает, что у вас старая версия Prisma. Обновите:
+
+```bash
+cd backend
+npm install @prisma/client@latest prisma@latest
+npx prisma generate
+cd ..
+
+# Запустите инициализацию заново
+./init-db.sh --sql
+```
+
+Подробнее: [TROUBLESHOOTING_PRISMA.md](TROUBLESHOOTING_PRISMA.md)
+
 ### Frontend не открывается в Windows
 
 WSL2 использует виртуальную сеть. Попробуйте:

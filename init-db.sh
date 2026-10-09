@@ -174,7 +174,7 @@ else
     
     # Применение миграций Prisma через Docker
     echo "📋 Применение миграций Prisma..."
-    if ! docker compose exec -T backend npx prisma migrate deploy; then
+    if ! docker compose exec -T backend sh -c "cd backend && ./apply-migrations.sh"; then
         echo "❌ Ошибка: Не удалось применить миграции"
         echo ""
         echo "Попробуйте:"
