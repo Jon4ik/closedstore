@@ -31,14 +31,4 @@ export class UsersController {
   remove(@Param('id') id: string, @Request() req) {
     return this.usersService.remove(id, req.user.sub, req.user.fullName || req.user.username);
   }
-
-  @Put('profile/:id')
-  updateProfile(@Param('id') id: string, @Body() body: any) {
-    return this.usersService.updateProfile(id, body);
-  }
-
-  @Post('change-password/:id')
-  changePassword(@Param('id') id: string, @Body() body: { oldPassword: string; newPassword: string }) {
-    return this.usersService.changePassword(id, body.oldPassword, body.newPassword);
-  }
 }

@@ -17,6 +17,7 @@ export class RolesService {
       await this.prisma.auditLog.create({
         data: {
           userId,
+          userName: userName || 'Система',
           action: 'create_role',
           field: 'role',
           newValue: role.name,
@@ -42,6 +43,7 @@ export class RolesService {
           await this.prisma.auditLog.create({
             data: {
               userId,
+              userName: userName || 'Система',
               action: 'update_role',
               field: key,
               oldValue: String(oldValue || ''),
@@ -67,6 +69,7 @@ export class RolesService {
       await this.prisma.auditLog.create({
         data: {
           userId,
+          userName: userName || 'Система',
           action: 'delete_role',
           field: 'role',
           oldValue: existing.name,

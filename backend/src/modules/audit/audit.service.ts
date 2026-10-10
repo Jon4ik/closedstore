@@ -18,8 +18,6 @@ export class AuditService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { timestamp: 'desc' },
-        // ФИО пользователя берётся из справочника пользователей по userId
-        include: { user: { select: { id: true, username: true, fullName: true } } },
       }),
       this.prisma.auditLog.count({ where }),
     ]);

@@ -138,7 +138,7 @@ export class StoresService {
 
     await this.prisma.auditLog.create({
       data: {
-        storeId: store.id, userId,
+        storeId: store.id, userId, userName,
         action: 'create', field: 'project',
         details: `Создан объект №${store.storeNumber}`,
         newValue: store.storeNumber,
@@ -173,34 +173,10 @@ export class StoresService {
       include: { tu: true },
     });
 
-    // Audit - сравниваем нормализованные значения, чтобы не писать
-    // ложные изменения дат (Date из БД vs строка ДД.ММ.ГГГГ из формы).
-    // Без нормализации любое сохранение карточки фиксировалось как
-    // "Изменено поле demolitionDate/closureDate", хотя дата не менялась.
-    const skipKeys = ['id', 'createdAt', 'updatedAt', 'createdBy'];
+    // Audit - записываем читаемые значения
     for (const [key, newValue] of Object.entries(data)) {
-      if (skipKeys.includes(key)) continue;
-      if (!(key in existing)) continue;
-
       const oldValue = (existing as any)[key];
-      
-      // Для дат сравниваем корректно (конвертируем оба значения в один формат)
-      let hasChanged = false;
-      if (dateFields.includes(key)) {
-        // Пропускаем null/undefined значения
-        if (!oldValue && !newValue) continue;
-        if (!oldValue || !newValue) {
-          hasChanged = true;
-        } else {
-          const oldDate = this.formatDateForAudit(oldValue);
-          const newDate = this.formatDateForAudit(newValue);
-          hasChanged = oldDate !== newDate;
-        }
-      } else {
-        hasChanged = String(oldValue || '') !== String(newValue || '');
-      }
-      
-      if (hasChanged) {
+      if (String(oldValue) !== String(newValue)) {
         let oldValueDisplay = String(oldValue || '');
         let newValueDisplay = String(newValue || '');
         
@@ -218,10 +194,10 @@ export class StoresService {
           oldValueDisplay = this.formatDateForAudit(oldValue);
           newValueDisplay = this.formatDateForAudit(newValue);
         }
-
+        
         await this.prisma.auditLog.create({
           data: {
-            storeId: id, userId,
+            storeId: id, userId, userName,
             action: 'update', field: key,
             oldValue: oldValueDisplay,
             newValue: newValueDisplay,
@@ -232,23 +208,6 @@ export class StoresService {
     }
 
     return store;
-  }
-
-  // Нормализация значений для корректного сравнения при аудите.
-  private normalizeForCompare(key: string, value: any): string {
-    if (value === null || value === undefined || value === '') return '';
-    const dateFields = ['closureDate', 'demolitionDate', 'installationDate', 'techOpenDate'];
-    if (dateFields.includes(key)) {
-      return this.formatDateForAudit(value);
-    }
-    if (typeof value === 'object' && !(value instanceof Date)) {
-      try {
-        return JSON.stringify(value);
-      } catch {
-        return String(value);
-      }
-    }
-    return String(value);
   }
   
   // Форматирование даты для аудита
@@ -276,7 +235,7 @@ export class StoresService {
 
     await this.prisma.auditLog.create({
       data: {
-        storeId: id, userId,
+        storeId: id, userId, userName,
         action: 'delete', field: 'project',
         oldValue: 'active', newValue: 'deleted',
         details: 'Объект удалён (soft delete)',
@@ -323,6 +282,7 @@ export class StoresService {
       data: {
         storeId,
         userId,
+        userName,
         text,
       },
     });
@@ -330,7 +290,7 @@ export class StoresService {
     // Аудит
     await this.prisma.auditLog.create({
       data: {
-        storeId, userId,
+        storeId, userId, userName,
         action: 'add_comment', field: 'comment',
         newValue: text.slice(0, 50),
         details: 'Добавлен комментарий',
@@ -349,7 +309,7 @@ export class StoresService {
     // Аудит
     await this.prisma.auditLog.create({
       data: {
-        storeId: comment.storeId, userId,
+        storeId: comment.storeId, userId, userName,
         action: 'delete_comment', field: 'comment',
         oldValue: comment.text.slice(0, 50),
         details: 'Удалён комментарий',

@@ -129,20 +129,6 @@ class ApiClient {
     });
   }
 
-  async updateProfile(id: string, data: { fullName?: string; chatId?: string; telegramId?: string; theme?: string }) {
-    return this.request<any>(`/users/profile/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async changePassword(id: string, oldPassword: string, newPassword: string) {
-    return this.request<any>(`/users/change-password/${id}`, {
-      method: 'POST',
-      body: JSON.stringify({ oldPassword, newPassword }),
-    });
-  }
-
   // Roles
   async getRoles() {
     return this.request<any[]>('/roles');

@@ -22,6 +22,16 @@ export default function AuditPage() {
     setExpandedRows(newExpanded);
   };
 
+  const filteredLog = auditLog.filter(log => {
+    if (filter.action && log.action !== filter.action) return false;
+    if (filter.module && getModule(log.action) !== filter.module) return false;
+    if (filter.search) {
+      const search = filter.search.toLowerCase();
+      return log.details.toLowerCase().includes(search) || log.userName.toLowerCase().includes(search);
+    }
+    return true;
+  }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
   const actionLabels: Record<string, string> = {
     login: 'Вход', logout: 'Выход', create: 'Создание', update: 'Обновление',
     delete: 'Удаление', import: 'Импорт', create_user: 'Создание пользователя',
@@ -44,8 +54,6 @@ export default function AuditPage() {
 
   // Определение подсистемы по действию
   const getModule = (action: string): string => {
-    // Не логируем действия пользователя в своем профиле
-    if (action === 'update_profile' || action === 'change_password') return 'Профиль';
     if (action.includes('user')) return 'Пользователи';
     if (action.includes('tu')) return 'Справочник ТУ';
     if (action.includes('role')) return 'Роли';
@@ -56,16 +64,6 @@ export default function AuditPage() {
     return 'Система';
   };
 
-  const filteredLog = auditLog.filter(log => {
-    if (filter.action && log.action !== filter.action) return false;
-    if (filter.module && getModule(log.action) !== filter.module) return false;
-    if (filter.search) {
-      const search = filter.search.toLowerCase();
-      return log.details.toLowerCase().includes(search) || log.userName.toLowerCase().includes(search);
-    }
-    return true;
-  }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
   const moduleColors: Record<string, string> = {
     'Пользователи': 'bg-blue-100 text-blue-700',
     'Справочник ТУ': 'bg-green-100 text-green-700',
@@ -74,7 +72,6 @@ export default function AuditPage() {
     'Авторизация': 'bg-green-100 text-green-700',
     'Импорт': 'bg-orange-100 text-orange-700',
     'Объекты': 'bg-blue-100 text-blue-700',
-    'Профиль': 'bg-cyan-100 text-cyan-700',
     'Система': 'bg-gray-100 text-gray-700',
   };
 
@@ -121,6 +118,7 @@ export default function AuditPage() {
             <label className="block text-xs font-medium text-gray-500 mb-1">Подсистема</label>
             <select value={filter.module} onChange={e => setFilter({ ...filter, module: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
               <option value="">Все подсистемы</option>
+              <option value="Пользователи">Пользователи</option>
               <option value="Справочник ТУ">Справочник ТУ</option>
               <option value="Роли">Роли</option>
               <option value="Комментарии">Комментарии</option>

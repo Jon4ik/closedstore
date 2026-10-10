@@ -46,6 +46,7 @@ export class AuthService {
     await this.prisma.auditLog.create({
       data: {
         userId: user.id,
+        userName: user.fullName,
         action: 'login',
         field: 'session',
         details: 'Вход в систему',
@@ -57,7 +58,6 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
-        userName: user.userName || user.fullName,
         fullName: user.fullName,
         role: user.roleId,
         permissions: user.role.permissions,
@@ -69,6 +69,7 @@ export class AuthService {
     await this.prisma.auditLog.create({
       data: {
         userId,
+        userName: '',
         action: 'logout',
         field: 'session',
         details: 'Выход из системы',
@@ -90,7 +91,6 @@ export class AuthService {
     return {
       id: user.id,
       username: user.username,
-      userName: user.userName || user.fullName,
       fullName: user.fullName,
       role: user.role.name,
       permissions: user.role.permissions,

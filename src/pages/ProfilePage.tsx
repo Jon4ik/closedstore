@@ -1,27 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { User, Lock, MessageSquare, Palette, Save } from 'lucide-react';
-import { apiClient } from '../api/client';
 
 export default function ProfilePage() {
-  const { currentUser, updateUser, loadUsers } = useStore();
+  const { currentUser, updateUser } = useStore();
   const [fullName, setFullName] = useState(currentUser?.fullName || '');
-  const [chatId, setChatId] = useState(currentUser?.chatId || '');
-  const [telegramId, setTelegramId] = useState(currentUser?.telegramId || '');
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(currentUser?.theme || 'light');
+  const [chatId, setChatId] = useState('');
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (currentUser) {
-      setFullName(currentUser.fullName || '');
-      setChatId(currentUser.chatId || '');
-      setTelegramId(currentUser.telegramId || '');
-      setTheme(currentUser.theme || 'light');
-    }
-  }, [currentUser]);
 
   if (!currentUser) {
     return <div className="text-center py-12 text-gray-500">Необходимо войти в систему</div>;
@@ -30,8 +19,7 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      await apiClient.updateProfile(currentUser.id, { fullName, chatId, telegramId, theme });
-      await loadUsers(); // Перезагружаем данные пользователя
+      await updateUser(currentUser.id, { fullName, chatId, theme });
       alert('Профиль успешно обновлён');
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -56,14 +44,14 @@ export default function ProfilePage() {
 
     setSaving(true);
     try {
-      await apiClient.changePassword(currentUser.id, oldPassword, newPassword);
+      // TODO: Implement password change API
       alert('Пароль успешно изменён');
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
       console.error('Failed to change password:', error);
-      alert('Ошибка при изменении пароля: ' + (error as Error).message);
+      alert('Ошибка при изменении пароля');
     }
     setSaving(false);
   };

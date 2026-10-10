@@ -21,24 +21,6 @@ DO $$ BEGIN
 END $$;
 
 DO $$ BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ldap_configs') THEN
-        CREATE TABLE "ldap_configs" (
-            "id" TEXT NOT NULL DEFAULT 'default',
-            "enabled" BOOLEAN NOT NULL DEFAULT false,
-            "url" TEXT NOT NULL DEFAULT '',
-            "bindDn" TEXT NOT NULL DEFAULT '',
-            "bindPasswordEnc" TEXT NOT NULL DEFAULT '',
-            "baseDn" TEXT NOT NULL DEFAULT '',
-            "searchFilter" TEXT NOT NULL DEFAULT '(objectClass=user)',
-            "titleAttribute" TEXT NOT NULL DEFAULT 'title',
-            "lastSyncAt" TIMESTAMP(3),
-            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            CONSTRAINT "ldap_configs_pkey" PRIMARY KEY ("id")
-        );
-    END IF;
-END $$;
-
-DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users') THEN
         CREATE TABLE "users" (
             "id" TEXT NOT NULL,
@@ -47,10 +29,6 @@ DO $$ BEGIN
             "fullName" TEXT NOT NULL,
             "roleId" TEXT NOT NULL,
             "isActive" BOOLEAN NOT NULL DEFAULT true,
-            "chatId" TEXT NOT NULL DEFAULT '',
-            "telegramId" TEXT NOT NULL DEFAULT '',
-            "theme" TEXT NOT NULL DEFAULT 'light',
-            "adAccount" TEXT,
             "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             "updatedAt" TIMESTAMP(3) NOT NULL,
             CONSTRAINT "users_pkey" PRIMARY KEY ("id")
@@ -106,6 +84,7 @@ DO $$ BEGIN
             "id" TEXT NOT NULL,
             "storeId" TEXT NOT NULL,
             "userId" TEXT NOT NULL,
+            "userName" TEXT NOT NULL,
             "text" TEXT NOT NULL,
             "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT "comments_pkey" PRIMARY KEY ("id")
@@ -119,6 +98,7 @@ DO $$ BEGIN
             "id" TEXT NOT NULL,
             "storeId" TEXT,
             "userId" TEXT NOT NULL,
+            "userName" TEXT NOT NULL,
             "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             "action" TEXT NOT NULL,
             "field" TEXT NOT NULL,
@@ -203,12 +183,3 @@ DO $$ BEGIN
         ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
     END IF;
 END $$;
-
--- Seed записи настроек LDAP (одна строка-синглтон)
-INSERT INTO "ldap_configs" ("id", "updatedAt")
-VALUES ('default', CURRENT_TIMESTAMP)
-ON CONFLICT ("id") DO NOTHING;
-
--- Право "Синхронизация с LDAP" для роли администратора
-UPDATE "roles" SET "permissions" = array_append("permissions", 'ldap_sync')
-WHERE "name" = 'Администратор' AND NOT ('ldap_sync' = ANY("permissions"));

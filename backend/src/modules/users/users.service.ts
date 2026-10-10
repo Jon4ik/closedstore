@@ -34,7 +34,6 @@ export class UsersService {
     const user = await this.prisma.user.create({
       data: {
         username: data.username,
-        userName: data.userName || data.fullName,
         password: hashedPassword,
         fullName: data.fullName,
         role: {
@@ -50,6 +49,7 @@ export class UsersService {
       await this.prisma.auditLog.create({
         data: {
           userId,
+          userName: userName || 'Система',
           action: 'create_user',
           field: 'user',
           newValue: user.username,
@@ -68,7 +68,6 @@ export class UsersService {
     // Подготовка данных для обновления
     const updateData: any = {
       username: data.username,
-      userName: data.userName || data.fullName,
       fullName: data.fullName,
       isActive: data.isActive,
     };
@@ -104,6 +103,7 @@ export class UsersService {
           await this.prisma.auditLog.create({
             data: {
               userId,
+              userName: userName || 'Система',
               action: 'update_user',
               field: key,
               oldValue: String(oldValue || ''),
@@ -129,6 +129,7 @@ export class UsersService {
       await this.prisma.auditLog.create({
         data: {
           userId,
+          userName: userName || 'Система',
           action: 'delete_user',
           field: 'user',
           oldValue: existing.username,
@@ -138,43 +139,5 @@ export class UsersService {
     }
 
     return user;
-  }
-
-  // Обновление профиля пользователя (свои настройки)
-  async updateProfile(id: string, data: { fullName?: string; chatId?: string; telegramId?: string; theme?: string }) {
-    const user = await this.prisma.user.update({
-      where: { id },
-      data: {
-        ...(data.fullName && { fullName: data.fullName }),
-        ...(data.chatId !== undefined && { chatId: data.chatId }),
-        ...(data.telegramId !== undefined && { telegramId: data.telegramId }),
-        ...(data.theme && { theme: data.theme }),
-      },
-      include: { role: true },
-    });
-
-    return user;
-  }
-
-  // Смена пароля
-  async changePassword(id: string, oldPassword: string, newPassword: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) throw new NotFoundException('Пользователь не найден');
-
-    // Проверка старого пароля
-    const isValid = await bcrypt.compare(oldPassword, user.password);
-    if (!isValid) {
-      throw new ConflictException('Неверный текущий пароль');
-    }
-
-    // Хэширование нового пароля
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    await this.prisma.user.update({
-      where: { id },
-      data: { password: hashedPassword },
-    });
-
-    return { success: true, message: 'Пароль успешно изменён' };
   }
 }

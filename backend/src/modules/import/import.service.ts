@@ -47,6 +47,7 @@ export class ImportService {
     await this.prisma.auditLog.create({
       data: {
         userId,
+        userName,
         action: 'import',
         field: 'projects',
         newValue: String(results.imported),
