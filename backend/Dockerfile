@@ -23,11 +23,18 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build the application
-RUN npm run build
-
-# Verify build output
-RUN ls -la dist/ && echo "Build successful" || (echo "Build failed - dist directory not found" && exit 1)
+# Build the application with detailed output
+RUN echo "=== Starting build ===" && \
+    npm run build 2>&1 && \
+    echo "=== Build completed ===" && \
+    ls -la && \
+    if [ -d "dist" ]; then \
+      echo "=== dist directory exists ===" && \
+      ls -la dist/; \
+    else \
+      echo "=== ERROR: dist directory not found ===" && \
+      exit 1; \
+    fi
 
 # Expose port
 EXPOSE 4000
