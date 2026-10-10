@@ -14,6 +14,28 @@ export default function StoreCard() {
 
   const project = projects.find(p => p.id === selectedProjectId);
   
+  // Конвертация из DD.MM.YYYY в YYYY-MM-DD для input type="date"
+  const toInputDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const match = dateStr.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (match) {
+      const [, day, month, year] = match;
+      return `${year}-${month}-${day}`;
+    }
+    return '';
+  };
+  
+  // Конвертация из YYYY-MM-DD в DD.MM.YYYY
+  const fromInputDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) {
+      const [, year, month, day] = match;
+      return `${day}.${month}.${year}`;
+    }
+    return '';
+  };
+  
   // Загружаем комментарии при открытии карточки
   useEffect(() => {
     if (selectedProjectId && isCardOpen) {
@@ -296,15 +318,14 @@ export default function StoreCard() {
                       </div>
                       {isEditing ? (
                         <input
-                          type="text"
-                          placeholder="ДД.ММ.ГГГГ"
-                          value={editData?.[getStageField(stage.name)] || ''}
-                          onChange={e => setEditData({ ...editData, [getStageField(stage.name)]: e.target.value })}
-                          className="text-sm border border-gray-200 rounded px-2 py-1 w-32"
+                          type="date"
+                          value={toInputDate(editData?.[getStageField(stage.name)] || '')}
+                          onChange={e => setEditData({ ...editData, [getStageField(stage.name)]: fromInputDate(e.target.value) })}
+                          className="text-sm border border-gray-200 rounded px-2 py-1 w-40"
                         />
                       ) : (
                         <p className={`text-sm ${stage.date ? 'text-gray-700' : 'text-gray-400 italic'}`}>
-                          {stage.date || 'Не назначено'}
+                          {formatDate(stage.date) || 'Не назначено'}
                         </p>
                       )}
                     </div>

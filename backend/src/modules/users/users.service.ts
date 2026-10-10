@@ -16,13 +16,29 @@ export class UsersService {
     return user;
   }
 
-  async create(data: { username: string; password: string; fullName: string; roleId: string }) {
+  async create(data: any) {
     const exists = await this.prisma.user.findUnique({ where: { username: data.username } });
     if (exists) throw new ConflictException('Логин уже занят');
 
+    // Извлекаем roleId из объекта role если он передан
+    let roleId = data.roleId || data.role;
+    if (typeof data.role === 'object' && data.role.id) {
+      roleId = data.role.id;
+    }
+    
+    if (!roleId) {
+      throw new ConflictException('Роль не указана');
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
     return this.prisma.user.create({
-      data: { ...data, password: hashedPassword },
+      data: {
+        username: data.username,
+        password: hashedPassword,
+        fullName: data.fullName,
+        roleId: roleId,
+        isActive: data.isActive !== undefined ? data.isActive : true,
+      },
       include: { role: true },
     });
   }

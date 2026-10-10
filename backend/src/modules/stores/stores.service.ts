@@ -149,7 +149,10 @@ export class StoresService {
   }
 
   async update(id: string, data: any, userId: string, userName: string) {
-    const existing = await this.prisma.storeProject.findUnique({ where: { id } });
+    const existing = await this.prisma.storeProject.findUnique({ 
+      where: { id },
+      include: { tu: true }
+    });
     if (!existing) throw new NotFoundException('Объект не найден');
 
     // Валидация дат если они есть в данных
@@ -170,16 +173,34 @@ export class StoresService {
       include: { tu: true },
     });
 
-    // Audit
+    // Audit - записываем читаемые значения
     for (const [key, newValue] of Object.entries(data)) {
       const oldValue = (existing as any)[key];
       if (String(oldValue) !== String(newValue)) {
+        let oldValueDisplay = String(oldValue || '');
+        let newValueDisplay = String(newValue || '');
+        
+        // Для tuId записываем имя ТУ вместо ID
+        if (key === 'tuId') {
+          oldValueDisplay = existing.tu?.fullName || oldValue;
+          if (newValue) {
+            const newTu = await this.prisma.tU.findUnique({ where: { id: String(newValue) } });
+            newValueDisplay = newTu?.fullName || String(newValue);
+          }
+        }
+        
+        // Для дат форматируем в dd.mm.yyyy
+        if (dateFields.includes(key)) {
+          oldValueDisplay = this.formatDateForAudit(oldValue);
+          newValueDisplay = this.formatDateForAudit(newValue);
+        }
+        
         await this.prisma.auditLog.create({
           data: {
             storeId: id, userId, userName,
             action: 'update', field: key,
-            oldValue: String(oldValue || ''),
-            newValue: String(newValue || ''),
+            oldValue: oldValueDisplay,
+            newValue: newValueDisplay,
             details: `Изменено поле "${key}"`,
           },
         });
@@ -187,6 +208,23 @@ export class StoresService {
     }
 
     return store;
+  }
+  
+  // Форматирование даты для аудита
+  private formatDateForAudit(dateStr: any): string {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return String(dateStr);
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}.${month}.${year}`;
+    } catch {
+      return String(dateStr);
+    }
   }
 
   async remove(id: string, userId: string, userName: string) {
