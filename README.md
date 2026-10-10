@@ -9,53 +9,46 @@
 - Docker Compose 2.0+
 - PostgreSQL 13+ (внешняя база данных)
 
-### 1. Клонирование и настройка
+### 1. Настройка
 
 ```bash
-git clone <your-repo-url>
-cd store-reconstruction
+# Скопируйте пример конфигурации
 cp .env.example .env
+
+# Отредактируйте .env
 nano .env
 ```
 
-### 2. Настройка .env
-
-Отредактируйте настройки подключения к PostgreSQL:
-
+Укажите настройки PostgreSQL:
 ```env
-# PostgreSQL (внешняя база данных)
 DB_HOST=your-postgres-host
 DB_PORT=5432
 DB_NAME=store_reconstruction
 DB_USER=postgres
 DB_PASSWORD=your_secure_password
-
-# JWT секрет (минимум 32 символа)
-JWT_SECRET=your_jwt_secret_at_least_32_characters_long
-
-# Домен
+JWT_SECRET=your_jwt_secret_at_least_32_characters
 DOMAIN=localhost
 ```
 
-### 3. Создание базы данных
+### 2. Создание базы данных
 
 ```bash
 psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
 ```
 
-### 4. Запуск
+### 3. Запуск
 
 ```bash
 docker compose up -d
 ```
 
-### 5. Доступ
+### 4. Доступ
 
 - **Frontend**: http://your-server-ip:5001
 - **Backend API**: http://your-server-ip:4000/api
 - **Swagger**: http://your-server-ip:4000/api/docs
 
-### 6. Вход
+### 5. Вход
 
 | Логин | Пароль | Роль |
 |-------|--------|------|
@@ -124,5 +117,5 @@ psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME < backup.sql
 
 ---
 
-**Версия:** 1.1.0  
+**Версия:** 2.0.4  
 **Режим:** Docker
