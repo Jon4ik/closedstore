@@ -19,7 +19,11 @@ export default function AddStoreModal() {
 
   const validate = (): string[] => {
     const errs: string[] = [];
-    if (!form.storeNumber.trim()) errs.push('Укажите номер магазина');
+    if (!form.storeNumber.trim()) {
+      errs.push('Укажите номер магазина');
+    } else if (!/^\d{1,4}$/.test(form.storeNumber.trim())) {
+      errs.push('Номер магазина должен содержать от 1 до 4 цифр');
+    }
     if (!form.address.trim()) errs.push('Укажите адрес');
     if (projects.find(p => p.storeNumber === form.storeNumber.trim() && !p.isDeleted)) errs.push(`Магазин №${form.storeNumber} уже существует`);
     
@@ -81,7 +85,18 @@ export default function AddStoreModal() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Номер магазина <span className="text-red-500">*</span></label>
-              <input type="text" value={form.storeNumber} onChange={e => setForm({ ...form, storeNumber: e.target.value })} placeholder="864" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input 
+                type="text" 
+                value={form.storeNumber} 
+                onChange={e => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  setForm({ ...form, storeNumber: value });
+                }}
+                placeholder="864" 
+                maxLength={4}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+              />
+              <p className="text-xs text-gray-400 mt-1">Только цифры, максимум 4 знака</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Тип работ <span className="text-red-500">*</span></label>

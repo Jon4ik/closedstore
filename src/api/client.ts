@@ -154,6 +154,12 @@ class ApiClient {
     return this.request<any>(`/audit${queryString}`);
   }
 
+  async clearAuditLogs() {
+    return this.request<any>('/audit/clear', {
+      method: 'DELETE',
+    });
+  }
+
   // Dashboard
   async getDashboard() {
     return this.request<any>('/stores/dashboard');
@@ -180,6 +186,24 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  // Comments
+  async getComments(storeId: string) {
+    return this.request<any[]>(`/stores/${storeId}/comments`);
+  }
+
+  async addComment(storeId: string, text: string) {
+    return this.request<any>(`/stores/${storeId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+  }
+
+  async deleteComment(commentId: string) {
+    return this.request<any>(`/stores/comments/${commentId}`, {
+      method: 'DELETE',
+    });
   }
 }
 

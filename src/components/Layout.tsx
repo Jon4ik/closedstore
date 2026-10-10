@@ -9,7 +9,7 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, currentPage, onNavigate }: LayoutProps) {
-  const { currentUser, logout, hasPermission } = useStore();
+  const { currentUser, logout, hasPermission, roles } = useStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const mainNavItems = [
@@ -25,7 +25,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
     { id: 'audit', label: 'Аудит', icon: User, permission: 'view_audit' },
   ];
 
-  const currentRole = currentUser ? useStore.getState().roles.find(r => r.id === currentUser.role) : null;
+  const currentRole = currentUser && roles.length > 0 ? roles.find(r => r.id === currentUser.role) : null;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

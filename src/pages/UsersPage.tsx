@@ -45,7 +45,7 @@ export default function UsersPage() {
     setEditData({ username: user.username, fullName: user.fullName, role: user.role, isActive: user.isActive });
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editingId && editData) {
       if (!editData.username.trim()) {
         alert('Укажите логин');
@@ -60,21 +60,34 @@ export default function UsersPage() {
         alert(`Пользователь с логином "${editData.username}" уже существует`);
         return;
       }
-      updateUser(editingId, editData);
-      setEditingId(null);
-      setEditData(null);
+      try {
+        await updateUser(editingId, editData);
+        setEditingId(null);
+        setEditData(null);
+      } catch (error) {
+        console.error('Failed to update user:', error);
+        alert('Ошибка при обновлении пользователя');
+      }
     }
   };
 
-  const handleDelete = (id: string) => {
-    const success = deleteUser(id);
-    if (!success) {
-      alert('Нельзя удалить себя или последнего пользователя');
+  const handleDelete = async (id: string) => {
+    try {
+      const success = await deleteUser(id);
+      if (!success) {
+        alert('Нельзя удалить себя или последнего пользователя');
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('Ошибка при удалении пользователя');
     }
     setDeleteConfirm(null);
   };
 
-  const getRoleName = (roleId: string) => roles.find(r => r.id === roleId)?.name || '—';
+  const getRoleName = (roleId: string) => {
+    const role = roles.find(r => r.id === roleId);
+    return role?.name || 'Не указана';
+  };
 
   return (
     <div className="space-y-6">

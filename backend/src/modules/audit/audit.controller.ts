@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Delete, Query, UseGuards } from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -10,5 +10,10 @@ export class AuditController {
   @Get()
   findAll(@Query() query: any) {
     return this.auditService.findAll(query);
+  }
+
+  @Delete('clear')
+  clearAll() {
+    return this.auditService.clearAll();
   }
 }

@@ -41,4 +41,20 @@ export class StoresController {
   restore(@Param('id') id: string) {
     return this.storesService.restore(id);
   }
+
+  // Комментарии
+  @Get(':id/comments')
+  getComments(@Param('id') id: string) {
+    return this.storesService.getComments(id);
+  }
+
+  @Post(':id/comments')
+  addComment(@Param('id') id: string, @Body() body: { text: string }, @Request() req) {
+    return this.storesService.addComment(id, req.user.sub, req.user.fullName || req.user.username, body.text);
+  }
+
+  @Delete('comments/:commentId')
+  deleteComment(@Param('commentId') commentId: string, @Request() req) {
+    return this.storesService.deleteComment(commentId, req.user.sub, req.user.fullName || req.user.username);
+  }
 }

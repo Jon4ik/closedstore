@@ -226,4 +226,58 @@ export class StoresService {
       cancelled: projects.filter(p => p.status === 'Отменено').length,
     };
   }
+
+  // Комментарии
+  async getComments(storeId: string) {
+    return this.prisma.comment.findMany({
+      where: { storeId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async addComment(storeId: string, userId: string, userName: string, text: string) {
+    // Проверяем существование объекта
+    const store = await this.prisma.storeProject.findUnique({ where: { id: storeId } });
+    if (!store) throw new NotFoundException('Объект не найден');
+
+    const comment = await this.prisma.comment.create({
+      data: {
+        storeId,
+        userId,
+        userName,
+        text,
+      },
+    });
+
+    // Аудит
+    await this.prisma.auditLog.create({
+      data: {
+        storeId, userId, userName,
+        action: 'add_comment', field: 'comment',
+        newValue: text.slice(0, 50),
+        details: 'Добавлен комментарий',
+      },
+    });
+
+    return comment;
+  }
+
+  async deleteComment(commentId: string, userId: string, userName: string) {
+    const comment = await this.prisma.comment.findUnique({ where: { id: commentId } });
+    if (!comment) throw new NotFoundException('Комментарий не найден');
+
+    await this.prisma.comment.delete({ where: { id: commentId } });
+
+    // Аудит
+    await this.prisma.auditLog.create({
+      data: {
+        storeId: comment.storeId, userId, userName,
+        action: 'delete_comment', field: 'comment',
+        oldValue: comment.text.slice(0, 50),
+        details: 'Удалён комментарий',
+      },
+    });
+
+    return { success: true };
+  }
 }

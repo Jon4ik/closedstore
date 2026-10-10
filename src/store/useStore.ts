@@ -23,7 +23,7 @@ interface AppState {
   dataLoaded: boolean;
 
   // Auth
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean | 'disabled'>;
   logout: () => Promise<void>;
   restoreSession: () => void;
 
@@ -122,8 +122,12 @@ export const useStore = create<AppState>((set, get) => ({
       localStorage.setItem('currentUser', JSON.stringify(response.user));
       set({ currentUser: response.user });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
+      // Проверяем если учетная запись отключена
+      if (error.message && error.message.includes('отключена')) {
+        return 'disabled';
+      }
       return false;
     }
   },
@@ -357,8 +361,8 @@ export const useStore = create<AppState>((set, get) => ({
   // Comments
   loadComments: async (storeId: string) => {
     try {
-      const project = await apiClient.getProject(storeId);
-      set({ comments: project.comments || [] });
+      const comments = await apiClient.getComments(storeId);
+      set({ comments });
     } catch (error) {
       console.error('Failed to load comments:', error);
     }
@@ -366,9 +370,9 @@ export const useStore = create<AppState>((set, get) => ({
 
   addComment: async (commentData) => {
     try {
-      // Backend должен поддерживать добавление комментариев
-      // Если нет - нужно добавить endpoint
-      console.warn('Comments API not implemented yet');
+      await apiClient.addComment(commentData.storeId, commentData.text);
+      // Перезагружаем комментарии
+      await get().loadComments(commentData.storeId);
     } catch (error) {
       console.error('Failed to add comment:', error);
       throw error;
@@ -377,7 +381,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   deleteComment: async (id: string) => {
     try {
-      console.warn('Comments API not implemented yet');
+      await apiClient.deleteComment(id);
     } catch (error) {
       console.error('Failed to delete comment:', error);
       throw error;
@@ -396,7 +400,8 @@ export const useStore = create<AppState>((set, get) => ({
 
   clearAuditLog: async () => {
     try {
-      console.warn('Clear audit log API not implemented yet');
+      await apiClient.clearAuditLogs();
+      set({ auditLog: [] });
     } catch (error) {
       console.error('Failed to clear audit log:', error);
       throw error;
