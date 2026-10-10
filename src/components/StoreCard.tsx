@@ -67,10 +67,15 @@ export default function StoreCard() {
     setEditing(false); setEditData(null);
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!newComment.trim() || !currentUser) return;
-    addComment({ storeId: project.id, userId: currentUser.id, userName: currentUser.fullName, text: newComment.trim() });
-    setNewComment('');
+    try {
+      await addComment({ storeId: project.id, userId: currentUser.id, userName: currentUser.fullName, text: newComment.trim() });
+      setNewComment('');
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      alert('Ошибка при добавлении комментария');
+    }
   };
 
   const rowColors = ['', '#fee2e2', '#fef3c7', '#dcfce7', '#dbeafe', '#f3e8ff', '#fce7f3', '#e0e7ff', '#ccfbf1'];

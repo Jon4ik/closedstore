@@ -11,8 +11,12 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const success = await login(username, password);
-    if (!success) setError('Неверное имя пользователя или пароль');
+    const result = await login(username, password);
+    if (result === false) {
+      setError('Неверное имя пользователя или пароль');
+    } else if (result === 'disabled') {
+      setError('Учетная запись отключена. Обратитесь к администратору.');
+    }
   };
 
   return (

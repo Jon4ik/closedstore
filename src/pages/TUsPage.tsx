@@ -58,9 +58,16 @@ export default function TUsPage() {
     }
   };
 
-  const handleDelete = (id: string) => {
-    const success = deleteTU(id);
-    if (!success) alert('Нельзя удалить ТУ, который назначен на активные объекты');
+  const handleDelete = async (id: string) => {
+    try {
+      const success = await deleteTU(id);
+      if (!success) {
+        alert('Нельзя удалить ТУ, который назначен на активные объекты');
+      }
+    } catch (error) {
+      console.error('Failed to delete TU:', error);
+      alert('Ошибка при удалении ТУ');
+    }
     setDeleteConfirm(null);
   };
 
@@ -92,11 +99,11 @@ export default function TUsPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Телефон</label>
-              <input type="text" value={newTU.phone} onChange={e => setNewTU({ ...newTU, phone: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="+7 (999) 123-45-67" />
+              <input type="tel" value={newTU.phone} onChange={e => setNewTU({ ...newTU, phone: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="+7(xxx)xxx-xx-xx" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
-              <input type="text" value={newTU.email} onChange={e => setNewTU({ ...newTU, email: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="zotov@company.ru" />
+              <input type="email" value={newTU.email} onChange={e => setNewTU({ ...newTU, email: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="mail@mail.ru" />
             </div>
           </div>
           <div className="flex items-center gap-2 mt-4">
@@ -129,8 +136,8 @@ export default function TUsPage() {
                     <>
                       <td className="px-4 py-3"><input type="text" value={editData.fullName} onChange={e => setEditData({ ...editData, fullName: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" /></td>
                       <td className="px-4 py-3"><input type="text" value={editData.position} onChange={e => setEditData({ ...editData, position: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" /></td>
-                      <td className="px-4 py-3"><input type="text" value={editData.phone} onChange={e => setEditData({ ...editData, phone: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" /></td>
-                      <td className="px-4 py-3"><input type="text" value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" /></td>
+                      <td className="px-4 py-3"><input type="tel" value={editData.phone} onChange={e => setEditData({ ...editData, phone: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" placeholder="+7(xxx)xxx-xx-xx" /></td>
+                      <td className="px-4 py-3"><input type="email" value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" placeholder="mail@mail.ru" /></td>
                       <td className="px-4 py-3 text-gray-500">{projectCount}</td>
                       <td className="px-4 py-3">
                         <select value={editData.isActive ? 'active' : 'inactive'} onChange={e => setEditData({ ...editData, isActive: e.target.value === 'active' })} className="px-2 py-1 border border-gray-200 rounded text-sm">

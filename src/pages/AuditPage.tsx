@@ -53,7 +53,15 @@ export default function AuditPage() {
           <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-2">
             <AlertTriangle size={16} className="text-red-600" />
             <span className="text-sm text-red-700">Очистить весь журнал?</span>
-            <button onClick={() => { clearAuditLog(); setClearConfirm(false); }} className="text-xs bg-red-600 text-white px-3 py-1 rounded">Да, очистить</button>
+            <button onClick={async () => { 
+              try {
+                await clearAuditLog(); 
+                setClearConfirm(false);
+              } catch (error) {
+                console.error('Failed to clear audit log:', error);
+                alert('Ошибка при очистке журнала');
+              }
+            }} className="text-xs bg-red-600 text-white px-3 py-1 rounded">Да, очистить</button>
             <button onClick={() => setClearConfirm(false)} className="text-xs border border-gray-200 px-3 py-1 rounded">Отмена</button>
           </div>
         ) : (

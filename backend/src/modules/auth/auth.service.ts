@@ -16,8 +16,12 @@ export class AuthService {
       include: { role: true },
     });
 
-    if (!user || !user.isActive) {
+    if (!user) {
       throw new UnauthorizedException('Неверные учётные данные');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Учетная запись отключена. Обратитесь к администратору.');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

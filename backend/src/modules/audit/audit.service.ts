@@ -24,4 +24,9 @@ export class AuditService {
 
     return { data, total, page, limit };
   }
+
+  async clearAll() {
+    await this.prisma.auditLog.deleteMany({});
+    return { success: true, message: 'Audit log cleared' };
+  }
 }
