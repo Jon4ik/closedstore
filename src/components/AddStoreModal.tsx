@@ -5,9 +5,9 @@ import { parseDateInput } from '../utils/statusCalculator';
 import { validateDate } from '../utils/validation';
 
 export default function AddStoreModal() {
-  const { isAddModalOpen, closeAddModal, addProject, tus, projects, currentUser } = useStore();
+  const { isAddModalOpen, closeAddModal, addProject, tus, projects, currentUser, defaultWorkType } = useStore();
   const [form, setForm] = useState({
-    storeNumber: '', address: '', city: '', workType: 'Закрытие' as 'Закрытие' | 'Реконструкция' | 'Открытие',
+    storeNumber: '', address: '', city: '', workType: defaultWorkType,
     closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '',
     tuId: tus[0]?.id || '', comment: '', rowColor: '',
   });

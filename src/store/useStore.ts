@@ -41,11 +41,12 @@ interface AppState {
   // UI
   openCard: (id: string) => void;
   closeCard: () => void;
-  openAddModal: () => void;
+  openAddModal: (defaultWorkType?: 'Закрытие' | 'Реконструкция' | 'Открытие') => void;
   closeAddModal: () => void;
   openImportModal: () => void;
   closeImportModal: () => void;
   setEditing: (val: boolean) => void;
+  defaultWorkType: 'Закрытие' | 'Реконструкция' | 'Открытие';
 
   // TUs
   loadTUs: () => Promise<void>;
@@ -110,6 +111,7 @@ export const useStore = create<AppState>((set, get) => ({
   isAddModalOpen: false,
   isImportModalOpen: false,
   isEditing: false,
+  defaultWorkType: 'Закрытие' as 'Закрытие' | 'Реконструкция' | 'Открытие',
   dbConfig: { host: 'localhost', port: 5432, database: 'store_reconstruction', username: 'postgres', password: '', ssl: false },
   dataLoaded: false,
 
@@ -219,7 +221,7 @@ export const useStore = create<AppState>((set, get) => ({
   // UI
   openCard: (id: string) => set({ selectedProjectId: id, isCardOpen: true }),
   closeCard: () => set({ selectedProjectId: null, isCardOpen: false, isEditing: false }),
-  openAddModal: () => set({ isAddModalOpen: true }),
+  openAddModal: (defaultWorkType?: 'Закрытие' | 'Реконструкция' | 'Открытие') => set({ isAddModalOpen: true, defaultWorkType: defaultWorkType || 'Закрытие' }),
   closeAddModal: () => set({ isAddModalOpen: false }),
   openImportModal: () => set({ isImportModalOpen: true }),
   closeImportModal: () => set({ isImportModalOpen: false }),

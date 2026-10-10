@@ -14,7 +14,7 @@ import TUsPage from './pages/TUsPage';
 import AuditPage from './pages/AuditPage';
 
 export default function App() {
-  const { currentUser, restoreSession, loadProjects, loadTUs, loadUsers, loadRoles, loadAuditLog } = useStore();
+  const { currentUser, restoreSession, loadProjects, loadTUs, loadUsers, loadRoles, loadAuditLog, defaultWorkType } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   // Восстанавливаем сессию при загрузке
