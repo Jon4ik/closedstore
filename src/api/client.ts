@@ -59,14 +59,14 @@ class ApiClient {
     return this.request<any>(`/stores/${id}`);
   }
 
-  async createProject(data: any) {
+  async createProject( any) {
     return this.request<any>('/stores', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateProject(id: string, data: any) {
+  async updateProject(id: string,  any) {
     return this.request<any>(`/stores/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -84,14 +84,14 @@ class ApiClient {
     return this.request<any[]>('/tus');
   }
 
-  async createTU(data: any) {
+  async createTU( any) {
     return this.request<any>('/tus', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateTU(id: string, data: any) {
+  async updateTU(id: string,  any) {
     return this.request<any>(`/tus/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -109,14 +109,14 @@ class ApiClient {
     return this.request<any[]>('/users');
   }
 
-  async createUser(data: any) {
+  async createUser( any) {
     return this.request<any>('/users', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateUser(id: string, data: any) {
+  async updateUser(id: string,  any) {
     return this.request<any>(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -129,19 +129,33 @@ class ApiClient {
     });
   }
 
+  async updateProfile(id: string,  { fullName?: string; chatId?: string; telegramId?: string; theme?: string }) {
+    return this.request<any>(`/users/profile/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async changePassword(id: string, oldPassword: string, newPassword: string) {
+    return this.request<any>(`/users/change-password/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+  }
+
   // Roles
   async getRoles() {
     return this.request<any[]>('/roles');
   }
 
-  async createRole(data: any) {
+  async createRole( any) {
     return this.request<any>('/roles', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateRole(id: string, data: any) {
+  async updateRole(id: string,  any) {
     return this.request<any>(`/roles/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -209,6 +223,30 @@ class ApiClient {
   async deleteComment(commentId: string) {
     return this.request<any>(`/stores/comments/${commentId}`, {
       method: 'DELETE',
+    });
+  }
+
+  // LDAP
+  async getLdapSettings() {
+    return this.request<any>('/ldap/settings');
+  }
+
+  async saveLdapSettings( any) {
+    return this.request<any>('/ldap/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async testLdapConnection() {
+    return this.request<any>('/ldap/test', {
+      method: 'POST',
+    });
+  }
+
+  async syncLdapUsers() {
+    return this.request<any>('/ldap/sync', {
+      method: 'POST',
     });
   }
 }
