@@ -20,4 +20,8 @@ export class TUsService {
   update(id: string, data: any) {
     return this.prisma.tU.update({ where: { id }, data });
   }
+
+  remove(id: string) {
+    return this.prisma.tU.delete({ where: { id } });
+  }
 }

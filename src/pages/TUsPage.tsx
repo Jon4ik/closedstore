@@ -100,6 +100,13 @@ export default function TUsPage() {
               <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
               <input type="email" value={newTU.email} onChange={e => setNewTU({ ...newTU, email: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="mail@mail.ru" />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Статус</label>
+              <select value={newTU.isActive ? 'active' : 'inactive'} onChange={e => setNewTU({ ...newTU, isActive: e.target.value === 'active' })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                <option value="active">Активен</option>
+                <option value="inactive">Неактивен</option>
+              </select>
+            </div>
           </div>
           <div className="flex items-center gap-2 mt-4">
             <button onClick={handleAdd} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Создать</button>
@@ -116,6 +123,7 @@ export default function TUsPage() {
               <th className="text-left px-4 py-3 font-medium text-gray-500">Должность</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Телефон</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500">Статус</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Действия</th>
             </tr>
           </thead>
@@ -137,6 +145,12 @@ export default function TUsPage() {
                       </td>
                       <td className="px-4 py-3"><input type="email" value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" placeholder="mail@mail.ru" /></td>
                       <td className="px-4 py-3">
+                        <select value={editData.isActive ? 'active' : 'inactive'} onChange={e => setEditData({ ...editData, isActive: e.target.value === 'active' })} className="px-2 py-1 border border-gray-200 rounded text-sm">
+                          <option value="active">Активен</option>
+                          <option value="inactive">Неактивен</option>
+                        </select>
+                      </td>
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button onClick={saveEdit} className="text-green-600 hover:bg-green-50 p-1 rounded text-xs font-medium">Сохранить</button>
                           <button onClick={() => { setEditingId(null); setEditData(null); }} className="text-gray-600 hover:bg-gray-100 p-1 rounded text-xs">Отмена</button>
@@ -149,6 +163,11 @@ export default function TUsPage() {
                       <td className="px-4 py-3 text-gray-600">{tu.position}</td>
                       <td className="px-4 py-3 text-gray-600">{tu.phone || '—'}</td>
                       <td className="px-4 py-3 text-gray-600">{tu.email || '—'}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded ${tu.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                          {tu.isActive ? 'Активен' : 'Неактивен'}
+                        </span>
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button onClick={() => startEdit(tu)} className="text-blue-600 hover:bg-blue-50 p-1.5 rounded"><Edit2 size={16} /></button>

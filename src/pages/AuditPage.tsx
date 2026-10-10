@@ -119,10 +119,15 @@ export default function AuditPage() {
                       <div className="text-gray-400">{timeStr}</div>
                     </td>
                     <td className="px-4 py-3">
-                      {project ? (
+                      {log.storeId ? (
                         <div className="text-xs">
-                          <div className="font-medium text-gray-900">№{project.storeNumber}</div>
-                          <div className="text-gray-500 truncate max-w-[150px]" title={project.address}>{project.address}</div>
+                          <div className="font-medium text-gray-900">ID: {log.storeId.substring(0, 8)}...</div>
+                          {project && (
+                            <>
+                              <div className="text-gray-700">№{project.storeNumber}</div>
+                              <div className="text-gray-500 truncate max-w-[150px]" title={project.address}>{project.address}</div>
+                            </>
+                          )}
                         </div>
                       ) : (
                         <span className="text-xs text-gray-400">—</span>
