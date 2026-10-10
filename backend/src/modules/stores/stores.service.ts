@@ -176,7 +176,18 @@ export class StoresService {
     // Audit - записываем читаемые значения
     for (const [key, newValue] of Object.entries(data)) {
       const oldValue = (existing as any)[key];
-      if (String(oldValue) !== String(newValue)) {
+      
+      // Для дат сравниваем корректно (конвертируем оба значения в один формат)
+      let hasChanged = false;
+      if (dateFields.includes(key)) {
+        const oldDate = oldValue ? this.formatDateForAudit(oldValue) : '';
+        const newDate = newValue ? this.formatDateForAudit(newValue) : '';
+        hasChanged = oldDate !== newDate;
+      } else {
+        hasChanged = String(oldValue || '') !== String(newValue || '');
+      }
+      
+      if (hasChanged) {
         let oldValueDisplay = String(oldValue || '');
         let newValueDisplay = String(newValue || '');
         

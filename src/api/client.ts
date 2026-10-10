@@ -59,14 +59,14 @@ class ApiClient {
     return this.request<any>(`/stores/${id}`);
   }
 
-  async createProject( any) {
+  async createProject(data: any) {
     return this.request<any>('/stores', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateProject(id: string,  any) {
+  async updateProject(id: string, data: any) {
     return this.request<any>(`/stores/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -84,14 +84,14 @@ class ApiClient {
     return this.request<any[]>('/tus');
   }
 
-  async createTU( any) {
+  async createTU(data: any) {
     return this.request<any>('/tus', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateTU(id: string,  any) {
+  async updateTU(id: string, data: any) {
     return this.request<any>(`/tus/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -109,14 +109,14 @@ class ApiClient {
     return this.request<any[]>('/users');
   }
 
-  async createUser( any) {
+  async createUser(data: any) {
     return this.request<any>('/users', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateUser(id: string,  any) {
+  async updateUser(id: string, data: any) {
     return this.request<any>(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -129,7 +129,7 @@ class ApiClient {
     });
   }
 
-  async updateProfile(id: string,  { fullName?: string; chatId?: string; telegramId?: string; theme?: string }) {
+  async updateProfile(id: string, data: { fullName?: string; chatId?: string; telegramId?: string; theme?: string }) {
     return this.request<any>(`/users/profile/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -148,14 +148,14 @@ class ApiClient {
     return this.request<any[]>('/roles');
   }
 
-  async createRole( any) {
+  async createRole(data: any) {
     return this.request<any>('/roles', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateRole(id: string,  any) {
+  async updateRole(id: string, data: any) {
     return this.request<any>(`/roles/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -231,7 +231,7 @@ class ApiClient {
     return this.request<any>('/ldap/settings');
   }
 
-  async saveLdapSettings( any) {
+  async saveLdapSettings(data: any) {
     return this.request<any>('/ldap/settings', {
       method: 'PUT',
       body: JSON.stringify(data),
