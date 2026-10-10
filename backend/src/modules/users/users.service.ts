@@ -16,7 +16,7 @@ export class UsersService {
     return user;
   }
 
-  async create( any) {
+  async create(data: any) {
     const exists = await this.prisma.user.findUnique({ where: { username: data.username } });
     if (exists) throw new ConflictException('Логин уже занят');
 
@@ -32,7 +32,7 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
     return this.prisma.user.create({
-       {
+      data: {
         username: data.username,
         password: hashedPassword,
         fullName: data.fullName,
@@ -45,7 +45,7 @@ export class UsersService {
     });
   }
 
-  async update(id: string,  any) {
+  async update(id: string, data: any) {
     // Подготовка данных для обновления
     const updateData: any = {
       username: data.username,
