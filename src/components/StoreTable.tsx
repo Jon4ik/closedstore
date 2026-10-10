@@ -4,7 +4,7 @@ import { calculateProjectStatus, getNearestEvent, parseDate } from '../utils/sta
 import { Search, Filter, Plus, Download, Upload } from 'lucide-react';
 import Filters from './Filters';
 import { exportToExcel } from '../utils/exportUtils';
-import { formatDate } from '../utils/format';
+import { formatDateDisplay } from '../utils/format';
 
 type TabType = 'closures' | 'openings';
 
@@ -222,15 +222,15 @@ export default function StoreTable() {
                     )}
                     {activeTab === 'closures' ? (
                       <>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDate(project.closureDate)}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDate(project.demolitionDate)}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDate(project.installationDate)}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDate(project.techOpenDate)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDateDisplay(project.closureDate)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDateDisplay(project.demolitionDate)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDateDisplay(project.installationDate)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDateDisplay(project.techOpenDate)}</td>
                       </>
                     ) : (
                       <>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDate(project.installationDate)}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDate(project.techOpenDate)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDateDisplay(project.installationDate)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDateDisplay(project.techOpenDate)}</td>
                       </>
                     )}
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{getTUName(project.tuId)}</td>

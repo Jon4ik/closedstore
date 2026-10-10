@@ -1,6 +1,6 @@
 // Форматирование даты из ISO в ДД.ММ.ГГГГ
 export const formatDate = (dateStr: string | null | undefined): string => {
-  if (!dateStr) return '—';
+  if (!dateStr) return '';
   
   // Если уже в формате ДД.ММ.ГГГГ
   if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) {
@@ -10,7 +10,7 @@ export const formatDate = (dateStr: string | null | undefined): string => {
   // Если ISO формат
   try {
     const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '—';
+    if (isNaN(date.getTime())) return '';
     
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -18,8 +18,14 @@ export const formatDate = (dateStr: string | null | undefined): string => {
     
     return `${day}.${month}.${year}`;
   } catch {
-    return '—';
+    return '';
   }
+};
+
+// Форматирование даты для отображения (с '—' для пустых)
+export const formatDateDisplay = (dateStr: string | null | undefined): string => {
+  const formatted = formatDate(dateStr);
+  return formatted || '—';
 };
 
 // Валидация даты в формате ДД.ММ.ГГГГ
