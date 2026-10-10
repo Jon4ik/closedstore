@@ -187,9 +187,15 @@ export class StoresService {
       // Для дат сравниваем корректно (конвертируем оба значения в один формат)
       let hasChanged = false;
       if (dateFields.includes(key)) {
-        const oldDate = oldValue ? this.formatDateForAudit(oldValue) : '';
-        const newDate = newValue ? this.formatDateForAudit(newValue) : '';
-        hasChanged = oldDate !== newDate;
+        // Пропускаем null/undefined значения
+        if (!oldValue && !newValue) continue;
+        if (!oldValue || !newValue) {
+          hasChanged = true;
+        } else {
+          const oldDate = this.formatDateForAudit(oldValue);
+          const newDate = this.formatDateForAudit(newValue);
+          hasChanged = oldDate !== newDate;
+        }
       } else {
         hasChanged = String(oldValue || '') !== String(newValue || '');
       }

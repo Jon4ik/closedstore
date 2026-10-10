@@ -1,5 +1,3 @@
-// Prisma Schema для системы "Реконструкция — Закрытие"
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,96 +7,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// Пользователи системы (для авторизации)
-// ============================================
 model User {
-  id         String   @id @default(uuid())
-  username   String   @unique
-  userName   String   @default("") // отображаемое имя (ФИО) для авторизации и старых клиентов
-  password   String   // bcrypt hash
+  id         String    @id @default(uuid())
+  username   String    @unique
+  password   String
   fullName   String
   roleId     String
-  role       Role     @relation(fields: [roleId], references: [id])
-  isActive   Boolean  @default(true)
-  chatId     String?  // ID чата в мессенджере Пачка
-  telegramId String?  // ID в Telegram
-  theme      String   @default("light") // light, dark, system
-  chatId     String   @default("") // чат в мессенджере "Пачка" для уведомлений
-  telegramId String   @default("") // ID пользователя в Telegram для уведомлений
-  theme      String   @default("light") // 'light' | 'dark' | 'system'
-  adAccount  String?  // учётная запись в Active Directory (sAMAccountName), заполняется при LDAP-синхронизации
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  comments  Comment[]
-  auditLogs AuditLog[]
-
+  role       Role      @relation(fields: [roleId], references: [id])
+  isActive   Boolean   @default(true)
+  chatId     String?
+  telegramId String?
+  theme      String    @default("light")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  comments   Comment[]
+  auditLogs  AuditLog[]
   @@map("users")
 }
 
-// ============================================
-// Роли с гранулярными правами
-// ============================================
 model Role {
   id          String   @id @default(uuid())
   name        String   @unique
   description String   @default("")
-  permissions String[] // ['view', 'create', 'edit', 'delete', 'import', 'export', 'add_comments', 'manage_users', 'manage_roles', 'manage_tus', 'view_audit', 'settings', 'ldap_sync']
+  permissions String[]
   isSystem    Boolean  @default(false)
   createdAt   DateTime @default(now())
-
-  users User[]
-
+  users       User[]
   @@map("roles")
 }
 
-// ============================================
-// Настройки синхронизации с LDAP / Active Directory
-// (пароль bind-пользователя хранится в зашифрованном виде)
-// ============================================
-model LdapConfig {
-  id               String    @id @default("default")
-  enabled          Boolean   @default(false)
-  url              String    @default("") // например ldap://dc01.corp.local:389
-  bindDn           String    @default("") // DN сервисной учётной записи для поиска
-  bindPasswordEnc  String    @default("") // AES-256-GCM шифр (IV:authTag:ciphertext, base64)
-  baseDn           String    @default("") // база поиска, например DC=corp,DC=local
-  searchFilter     String    @default("(objectClass=user)")
-  titleAttribute   String    @default("title") // атрибут должности ('Территориальный управляющий')
-  lastSyncAt       DateTime?
-  updatedAt        DateTime  @updatedAt
-
-  @@map("ldap_configs")
-}
-
-// ============================================
-// Технические управляющие (ТУ)
-// ============================================
 model TU {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   fullName  String
-  position  String   @default("Территориальный управляющий")
+  position  String         @default("Территориальный управляющий")
   phone     String?
   email     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  projects StoreProject[]
-
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  projects  StoreProject[]
   @@map("tus")
 }
 
-// ============================================
-// Объекты (магазины)
-// ============================================
 model StoreProject {
   id               String    @id @default(uuid())
   storeNumber      String
   address          String
   city             String
-  workType         String    // 'Закрытие' | 'Реконструкция' | 'Открытие'
+  workType         String
   closureDate      DateTime?
   demolitionDate   DateTime?
   installationDate DateTime?
@@ -113,16 +69,11 @@ model StoreProject {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   createdBy        String
-
-  comments  Comment[]
-  auditLogs AuditLog[]
-
+  comments         Comment[]
+  auditLogs        AuditLog[]
   @@map("store_projects")
 }
 
-// ============================================
-// Комментарии к объектам
-// ============================================
 model Comment {
   id        String   @id @default(uuid())
   storeId   String
@@ -131,14 +82,10 @@ model Comment {
   user      User     @relation(fields: [userId], references: [id])
   text      String
   createdAt DateTime @default(now())
-
   @@index([storeId])
   @@map("comments")
 }
 
-// ============================================
-// Аудит всех действий в системе
-// ============================================
 model AuditLog {
   id        String   @id @default(uuid())
   storeId   String?
@@ -146,36 +93,31 @@ model AuditLog {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   timestamp DateTime @default(now())
-  action    String   // 'login', 'logout', 'create', 'update', 'delete', 'import', 'create_user', 'update_user', 'add_comment'
+  action    String
   field     String
   oldValue  String   @default("")
   newValue  String   @default("")
   details   String   @default("")
-
   @@index([userId])
   @@index([storeId])
   @@index([timestamp])
   @@map("audit_logs")
 }
 
-// ============================================
-// Настройки LDAP для синхронизации с AD
-// ============================================
 model LdapSettings {
-  id            String   @id @default(uuid())
-  host          String   // LDAP сервер (например: ldap://ad.company.ru)
-  port          Int      @default(389)
-  baseDn        String   // Base DN (например: DC=company,DC=ru)
-  bindDn        String   // Bind DN для подключения (например: CN=ldap_user,OU=Service,DC=company,DC=ru)
-  bindPassword  String   // Пароль для bind (шифруется)
-  useSsl        Boolean  @default(false)
-  searchFilter  String   @default("(objectClass=user)") // Фильтр для поиска пользователей
-  titleAttribute String  @default("title") // Атрибут для проверки должности
-  titleValue    String   @default("Территориальный управляющий") // Значение должности для синхронизации
-  enabled       Boolean  @default(false) // Включена ли синхронизация
-  lastSyncAt    DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
+  id             String    @id @default(uuid())
+  host           String
+  port           Int       @default(389)
+  baseDn         String
+  bindDn         String
+  bindPassword   String
+  useSsl         Boolean   @default(false)
+  searchFilter   String    @default("(objectClass=user)")
+  titleAttribute String    @default("title")
+  titleValue     String    @default("Территориальный управляющий")
+  enabled        Boolean   @default(false)
+  lastSyncAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   @@map("ldap_settings")
 }
