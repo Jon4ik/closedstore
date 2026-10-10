@@ -34,6 +34,7 @@ export class UsersService {
     const user = await this.prisma.user.create({
       data: {
         username: data.username,
+        userName: data.userName || data.fullName,
         password: hashedPassword,
         fullName: data.fullName,
         role: {
@@ -67,6 +68,7 @@ export class UsersService {
     // Подготовка данных для обновления
     const updateData: any = {
       username: data.username,
+      userName: data.userName || data.fullName,
       fullName: data.fullName,
       isActive: data.isActive,
     };

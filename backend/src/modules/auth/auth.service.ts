@@ -57,6 +57,7 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
+        userName: user.userName || user.fullName,
         fullName: user.fullName,
         role: user.roleId,
         permissions: user.role.permissions,
@@ -89,6 +90,7 @@ export class AuthService {
     return {
       id: user.id,
       username: user.username,
+      userName: user.userName || user.fullName,
       fullName: user.fullName,
       role: user.role.name,
       permissions: user.role.permissions,

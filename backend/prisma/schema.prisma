@@ -15,6 +15,7 @@ datasource db {
 model User {
   id         String   @id @default(uuid())
   username   String   @unique
+  userName   String   @default("") // отображаемое имя (ФИО) для авторизации и старых клиентов
   password   String   // bcrypt hash
   fullName   String
   roleId     String
