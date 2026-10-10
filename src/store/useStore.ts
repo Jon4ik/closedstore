@@ -25,6 +25,7 @@ interface AppState {
   // Auth
   login: (username: string, password: string) => boolean;
   logout: () => void;
+  restoreSession: () => void;
 
   // Filters
   setFilters: (filters: Partial<FilterState>) => void;
@@ -167,6 +168,8 @@ export const useStore = create<AppState>((set, get) => {
       const user = get().users.find(u => u.username === username && u.password === password && u.isActive);
       if (user) {
         set({ currentUser: user });
+        // Сохраняем сессию в localStorage
+        localStorage.setItem('currentUser', JSON.stringify(user));
         set(state => {
           const log: AuditLogEntry = {
             id: `log-${Date.now()}`, storeId: null, userId: user.id, userName: user.fullName,
@@ -189,6 +192,21 @@ export const useStore = create<AppState>((set, get) => {
         set(state => ({ auditLog: [...state.auditLog, log], currentUser: null }));
       } else {
         set({ currentUser: null });
+      }
+      // Удаляем сессию из localStorage
+      localStorage.removeItem('currentUser');
+    },
+
+    restoreSession: () => {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser);
+          set({ currentUser: user });
+        } catch (e) {
+          console.error('Failed to restore session:', e);
+          localStorage.removeItem('currentUser');
+        }
       }
     },
 
