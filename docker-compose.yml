@@ -16,7 +16,7 @@ services:
       PORT: 4000
       DOMAIN: ${DOMAIN:-localhost}
     ports:
-      - "127.0.0.1:4000:4000"
+      - "4000:4000"
     networks:
       - app-network
 
