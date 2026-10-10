@@ -21,6 +21,9 @@ model User {
   roleId     String
   role       Role     @relation(fields: [roleId], references: [id])
   isActive   Boolean  @default(true)
+  chatId     String?  // ID чата в мессенджере Пачка
+  telegramId String?  // ID в Telegram
+  theme      String   @default("light") // light, dark, system
   chatId     String   @default("") // чат в мессенджере "Пачка" для уведомлений
   telegramId String   @default("") // ID пользователя в Telegram для уведомлений
   theme      String   @default("light") // 'light' | 'dark' | 'system'
@@ -153,4 +156,26 @@ model AuditLog {
   @@index([storeId])
   @@index([timestamp])
   @@map("audit_logs")
+}
+
+// ============================================
+// Настройки LDAP для синхронизации с AD
+// ============================================
+model LdapSettings {
+  id            String   @id @default(uuid())
+  host          String   // LDAP сервер (например: ldap://ad.company.ru)
+  port          Int      @default(389)
+  baseDn        String   // Base DN (например: DC=company,DC=ru)
+  bindDn        String   // Bind DN для подключения (например: CN=ldap_user,OU=Service,DC=company,DC=ru)
+  bindPassword  String   // Пароль для bind (шифруется)
+  useSsl        Boolean  @default(false)
+  searchFilter  String   @default("(objectClass=user)") // Фильтр для поиска пользователей
+  titleAttribute String  @default("title") // Атрибут для проверки должности
+  titleValue    String   @default("Территориальный управляющий") // Значение должности для синхронизации
+  enabled       Boolean  @default(false) // Включена ли синхронизация
+  lastSyncAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("ldap_settings")
 }

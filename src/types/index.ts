@@ -85,6 +85,7 @@ export interface SystemUser {
   isActive: boolean;
   createdAt: string;
   chatId?: string;
+  telegramId?: string;
   theme?: 'light' | 'dark' | 'system';
 }
 

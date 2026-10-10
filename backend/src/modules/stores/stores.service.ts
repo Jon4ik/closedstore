@@ -183,21 +183,34 @@ export class StoresService {
       if (!(key in existing)) continue;
 
       const oldValue = (existing as any)[key];
-      const oldNorm = this.normalizeForCompare(key, oldValue);
-      const newNorm = this.normalizeForCompare(key, rawNewValue);
-
-      if (oldNorm === newNorm) continue;
-
-      const newValue = rawNewValue;
-      let oldValueDisplay = oldNorm;
-      let newValueDisplay = newNorm;
-
-      // Для tuId записываем имя ТУ вместо ID
-      if (key === 'tuId') {
-        oldValueDisplay = existing.tu?.fullName || oldNorm;
-        if (newValue) {
-          const newTu = await this.prisma.tU.findUnique({ where: { id: String(newValue) } });
-          newValueDisplay = newTu?.fullName || String(newValue);
+      
+      // Для дат сравниваем корректно (конвертируем оба значения в один формат)
+      let hasChanged = false;
+      if (dateFields.includes(key)) {
+        const oldDate = oldValue ? this.formatDateForAudit(oldValue) : '';
+        const newDate = newValue ? this.formatDateForAudit(newValue) : '';
+        hasChanged = oldDate !== newDate;
+      } else {
+        hasChanged = String(oldValue || '') !== String(newValue || '');
+      }
+      
+      if (hasChanged) {
+        let oldValueDisplay = String(oldValue || '');
+        let newValueDisplay = String(newValue || '');
+        
+        // Для tuId записываем имя ТУ вместо ID
+        if (key === 'tuId') {
+          oldValueDisplay = existing.tu?.fullName || oldValue;
+          if (newValue) {
+            const newTu = await this.prisma.tU.findUnique({ where: { id: String(newValue) } });
+            newValueDisplay = newTu?.fullName || String(newValue);
+          }
+        }
+        
+        // Для дат форматируем в dd.mm.yyyy
+        if (dateFields.includes(key)) {
+          oldValueDisplay = this.formatDateForAudit(oldValue);
+          newValueDisplay = this.formatDateForAudit(newValue);
         }
       }
 

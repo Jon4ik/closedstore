@@ -129,6 +129,20 @@ class ApiClient {
     });
   }
 
+  async updateProfile(id: string, data: { fullName?: string; chatId?: string; telegramId?: string; theme?: string }) {
+    return this.request<any>(`/users/profile/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async changePassword(id: string, oldPassword: string, newPassword: string) {
+    return this.request<any>(`/users/change-password/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+  }
+
   // Roles
   async getRoles() {
     return this.request<any[]>('/roles');
@@ -209,6 +223,30 @@ class ApiClient {
   async deleteComment(commentId: string) {
     return this.request<any>(`/stores/comments/${commentId}`, {
       method: 'DELETE',
+    });
+  }
+
+  // LDAP
+  async getLdapSettings() {
+    return this.request<any>('/ldap/settings');
+  }
+
+  async saveLdapSettings(data: any) {
+    return this.request<any>('/ldap/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async testLdapConnection() {
+    return this.request<any>('/ldap/test', {
+      method: 'POST',
+    });
+  }
+
+  async syncLdapUsers() {
+    return this.request<any>('/ldap/sync', {
+      method: 'POST',
     });
   }
 }
