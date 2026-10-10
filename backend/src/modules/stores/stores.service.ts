@@ -46,6 +46,28 @@ export class StoresService {
   }
 
   async create(data: any, userId: string, userName: string) {
+    // Проверяем что tuId существует
+    if (data.tuId) {
+      const tuExists = await this.prisma.tU.findUnique({ where: { id: data.tuId } });
+      if (!tuExists) {
+        // Если TU не найден, используем первого доступного
+        const firstTU = await this.prisma.tU.findFirst({ where: { isActive: true } });
+        if (firstTU) {
+          data.tuId = firstTU.id;
+        } else {
+          throw new Error('Не найдено ни одного активного ТУ. Сначала создайте ТУ.');
+        }
+      }
+    } else {
+      // Если tuId не указан, используем первого доступного
+      const firstTU = await this.prisma.tU.findFirst({ where: { isActive: true } });
+      if (firstTU) {
+        data.tuId = firstTU.id;
+      } else {
+        throw new Error('Не найдено ни одного активного ТУ. Сначала создайте ТУ.');
+      }
+    }
+
     const store = await this.prisma.storeProject.create({
       data: { ...data, createdBy: userId },
       include: { tu: true },

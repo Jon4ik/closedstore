@@ -24,22 +24,27 @@ export default function AddStoreModal() {
     return errs;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const errs = validate();
     if (errs.length > 0) { setErrors(errs); return; }
     setErrors([]);
     const city = form.city || form.address.split(',')[0].trim();
-    addProject({
-      storeNumber: form.storeNumber.trim(), address: form.address.trim(), city, workType: form.workType,
-      closureDate: form.closureDate ? parseDateInput(form.closureDate) : null,
-      demolitionDate: form.demolitionDate ? parseDateInput(form.demolitionDate) : null,
-      installationDate: form.installationDate ? parseDateInput(form.installationDate) : null,
-      techOpenDate: form.techOpenDate ? parseDateInput(form.techOpenDate) : null,
-      tuId: form.tuId, rowColor: form.rowColor, comment: form.comment,
-      isDeleted: false, manualStatus: null, createdBy: currentUser?.id || 'system',
-    });
-    setForm({ storeNumber: '', address: '', city: '', workType: 'Закрытие' as 'Закрытие' | 'Реконструкция' | 'Открытие', closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '', tuId: tus[0]?.id || '', comment: '', rowColor: '' });
-    closeAddModal();
+    try {
+      await addProject({
+        storeNumber: form.storeNumber.trim(), address: form.address.trim(), city, workType: form.workType,
+        closureDate: form.closureDate ? parseDateInput(form.closureDate) : null,
+        demolitionDate: form.demolitionDate ? parseDateInput(form.demolitionDate) : null,
+        installationDate: form.installationDate ? parseDateInput(form.installationDate) : null,
+        techOpenDate: form.techOpenDate ? parseDateInput(form.techOpenDate) : null,
+        tuId: form.tuId, rowColor: form.rowColor, comment: form.comment,
+        isDeleted: false, manualStatus: null, createdBy: currentUser?.id || 'system',
+      });
+      setForm({ storeNumber: '', address: '', city: '', workType: 'Закрытие' as 'Закрытие' | 'Реконструкция' | 'Открытие', closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '', tuId: tus[0]?.id || '', comment: '', rowColor: '' });
+      closeAddModal();
+    } catch (error) {
+      console.error('Failed to add project:', error);
+      setErrors(['Ошибка при создании объекта: ' + (error as Error).message]);
+    }
   };
 
   return (

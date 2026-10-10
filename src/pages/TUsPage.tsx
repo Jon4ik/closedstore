@@ -14,8 +14,31 @@ export default function TUsPage() {
     return <div className="text-center py-12 text-gray-500">Нет доступа к этой странице</div>;
   }
 
+  const validatePhone = (phone: string): boolean => {
+    if (!phone) return true; // Пустой телефон допустим
+    const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  };
+
+  const validateEmail = (email: string): boolean => {
+    if (!email) return true; // Пустой email допустим
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleAdd = () => {
-    if (!newTU.fullName) return;
+    if (!newTU.fullName) {
+      alert('Укажите ФИО');
+      return;
+    }
+    if (!validatePhone(newTU.phone)) {
+      alert('Некорректный формат телефона. Пример: +7 (999) 123-45-67');
+      return;
+    }
+    if (!validateEmail(newTU.email)) {
+      alert('Некорректный формат email. Пример: zotov@company.ru');
+      return;
+    }
     addTU(newTU);
     setNewTU({ fullName: '', position: 'Территориальный управляющий', phone: '', email: '', isActive: true });
     setShowAddForm(false);
@@ -28,6 +51,18 @@ export default function TUsPage() {
 
   const saveEdit = () => {
     if (editingId && editData) {
+      if (!editData.fullName) {
+        alert('Укажите ФИО');
+        return;
+      }
+      if (!validatePhone(editData.phone)) {
+        alert('Некорректный формат телефона. Пример: +7 (999) 123-45-67');
+        return;
+      }
+      if (!validateEmail(editData.email)) {
+        alert('Некорректный формат email. Пример: zotov@company.ru');
+        return;
+      }
       updateTU(editingId, editData);
       setEditingId(null);
       setEditData(null);

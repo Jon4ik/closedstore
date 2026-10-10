@@ -174,6 +174,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const project = await apiClient.createProject(projectData);
       await get().loadProjects();
+      await get().loadAuditLog(); // Обновляем аудит после создания
     } catch (error) {
       console.error('Failed to add project:', error);
       throw error;
@@ -184,6 +185,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       await apiClient.updateProject(id, updates);
       await get().loadProjects();
+      await get().loadAuditLog(); // Обновляем аудит после обновления
     } catch (error) {
       console.error('Failed to update project:', error);
       throw error;
