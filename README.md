@@ -101,7 +101,18 @@ chmod +x init-db.sh
 - `./init-db.sh` или `./init-db.sh --docker` — через Docker и Prisma (рекомендуется)
 - `./init-db.sh --sql` — через SQL скрипт (быстрый способ для тестирования)
 
-Подробнее см. [INIT_DB_README.md](INIT_DB_README.md)
+**Если возникла ошибка P3005 (The database schema is not empty):**
+
+```bash
+# Создайте baseline миграцию
+chmod +x baseline-migration.sh
+./baseline-migration.sh
+
+# Запустите проект
+./start.sh
+```
+
+Подробнее см. [FIX_P3005.md](FIX_P3005.md) и [INIT_DB_README.md](INIT_DB_README.md)
 
 ### 4. Запуск
 

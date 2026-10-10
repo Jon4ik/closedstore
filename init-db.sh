@@ -126,11 +126,44 @@ if [ "$METHOD" = "sql" ]; then
         exit 1
     fi
     
+    # Проверка, есть ли уже таблицы
+    TABLE_COUNT=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';" 2>/dev/null | xargs)
+    
+    if [ "$TABLE_COUNT" -gt 0 ]; then
+        echo "⚠️  База данных уже содержит таблицы ($TABLE_COUNT шт.)"
+        echo ""
+        read -p "Использовать baseline миграцию? (yes/no): " USE_BASELINE
+        
+        if [ "$USE_BASELINE" = "yes" ]; then
+            echo ""
+            echo "🔧 Создание baseline миграции..."
+            chmod +x baseline-migration.sh
+            ./baseline-migration.sh
+            exit 0
+        else
+            echo ""
+            read -p "Очистить базу данных и начать заново? (yes/no): " RESET_DB
+            if [ "$RESET_DB" = "yes" ]; then
+                chmod +x reset-database.sh
+                ./reset-database.sh
+                exit 0
+            else
+                echo "❌ Операция отменена"
+                exit 0
+            fi
+        fi
+    fi
+    
     echo "   Выполнение init-db.sql..."
     if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f init-db.sql; then
         echo "❌ Ошибка: Не удалось выполнить SQL скрипт"
         exit 1
     fi
+    
+    echo ""
+    echo "🔧 Создание baseline миграции..."
+    chmod +x baseline-migration.sh
+    ./baseline-migration.sh
     
     echo ""
     echo "✅ SQL инициализация завершена!"

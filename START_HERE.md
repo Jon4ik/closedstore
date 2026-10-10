@@ -105,15 +105,37 @@ tail -f logs/frontend.log
 
 ## Решение проблем
 
+### Ошибка Prisma P3005: "The database schema is not empty"
+
+Если база данных уже содержит таблицы, но Prisma не может применить миграции:
+
+```bash
+# Быстрое решение
+chmod +x baseline-migration.sh
+./baseline-migration.sh
+
+# Затем запустите проект
+./start.sh
+```
+
+Или очистите базу и начните заново:
+
+```bash
+chmod +x reset-database.sh
+./reset-database.sh
+./init-db.sh --sql
+./start.sh
+```
+
+Подробнее: [FIX_P3005.md](FIX_P3005.md)
+
 ### Ошибка Prisma: "No command registered for `migrate`"
 
 Это означает, что у вас старая версия Prisma. Обновите:
 
 ```bash
-cd backend
-npm install @prisma/client@latest prisma@latest
-npx prisma generate
-cd ..
+chmod +x fix-prisma.sh
+./fix-prisma.sh
 
 # Запустите инициализацию заново
 ./init-db.sh --sql
