@@ -53,6 +53,7 @@ async function main() {
     create: {
       username: 'admin',
       password: adminPassword,
+      userName: 'Администратор Системы',
       fullName: 'Администратор Системы',
       roleId: adminRole.id,
     },
@@ -64,6 +65,7 @@ async function main() {
     create: {
       username: 'manager',
       password: managerPassword,
+      userName: 'Иванов И.И.',
       fullName: 'Иванов И.И.',
       roleId: managerRole.id,
     },
@@ -75,6 +77,7 @@ async function main() {
     create: {
       username: 'viewer',
       password: viewerPassword,
+      userName: 'Петров П.П.',
       fullName: 'Петров П.П.',
       roleId: viewerRole.id,
     },
