@@ -225,30 +225,6 @@ class ApiClient {
       method: 'DELETE',
     });
   }
-
-  // LDAP
-  async getLdapSettings() {
-    return this.request<any>('/ldap/settings');
-  }
-
-  async saveLdapSettings(data: any) {
-    return this.request<any>('/ldap/settings', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async testLdapConnection() {
-    return this.request<any>('/ldap/test', {
-      method: 'POST',
-    });
-  }
-
-  async syncLdapUsers() {
-    return this.request<any>('/ldap/sync', {
-      method: 'POST',
-    });
-  }
 }
 
 export const apiClient = new ApiClient();
