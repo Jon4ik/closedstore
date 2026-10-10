@@ -98,6 +98,12 @@ class ApiClient {
     });
   }
 
+  async deleteTU(id: string) {
+    return this.request<any>(`/tus/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Users
   async getUsers() {
     return this.request<any[]>('/users');

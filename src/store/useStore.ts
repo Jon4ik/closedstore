@@ -260,7 +260,7 @@ export const useStore = create<AppState>((set, get) => ({
       const usedInProjects = get().projects.filter(p => p.tuId === id && !p.isDeleted);
       if (usedInProjects.length > 0) return false;
       
-      await apiClient.updateTU(id, { isActive: false });
+      await apiClient.deleteTU(id);
       await get().loadTUs();
       return true;
     } catch (error) {

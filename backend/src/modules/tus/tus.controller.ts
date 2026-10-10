@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { TUsService } from './tus.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -25,5 +25,10 @@ export class TUsController {
   @Put(':id')
   update(@Param('id') id: string, @Body() body: any) {
     return this.tusService.update(id, body);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.tusService.remove(id);
   }
 }
