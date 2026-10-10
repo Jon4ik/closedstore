@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { calculateProjectStatus, calculateStages, getNearestEvent, getOverdueInfo } from '../utils/statusCalculator';
 import { X, Edit3, Check, AlertTriangle, Clock, MapPin, User, Calendar, MessageSquare, History, ChevronDown, ChevronUp, Send, Palette } from 'lucide-react';
+import { validateDate } from '../utils/validation';
 
 export default function StoreCard() {
   const { selectedProjectId, isCardOpen, closeCard, projects, tus, auditLog, updateProject, currentUser, isEditing, setEditing, hasPermission, addComment, getProjectComments, loadComments } = useStore();
@@ -41,6 +42,22 @@ export default function StoreCard() {
 
   const handleSave = () => {
     if (!editData) return;
+    
+    // Валидация дат
+    const dateFields = [
+      { value: editData.closureDate, name: 'Закрытие для покупателей' },
+      { value: editData.demolitionDate, name: 'Демонтаж' },
+      { value: editData.installationDate, name: 'Монтаж' },
+      { value: editData.techOpenDate, name: 'Техническое открытие' },
+    ];
+    
+    for (const field of dateFields) {
+      if (field.value && !validateDate(field.value)) {
+        alert(`Некорректная дата "${field.name}": ${field.value}. Формат: ДД.ММ.ГГГГ`);
+        return;
+      }
+    }
+    
     updateProject(project.id, {
       address: editData.address,
       closureDate: editData.closureDate || null, demolitionDate: editData.demolitionDate || null,

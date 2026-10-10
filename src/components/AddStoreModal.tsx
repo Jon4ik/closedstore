@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { X, AlertCircle, Palette } from 'lucide-react';
 import { parseDateInput } from '../utils/statusCalculator';
+import { validateDate } from '../utils/validation';
 
 export default function AddStoreModal() {
   const { isAddModalOpen, closeAddModal, addProject, tus, projects, currentUser } = useStore();
@@ -21,6 +22,21 @@ export default function AddStoreModal() {
     if (!form.storeNumber.trim()) errs.push('Укажите номер магазина');
     if (!form.address.trim()) errs.push('Укажите адрес');
     if (projects.find(p => p.storeNumber === form.storeNumber.trim() && !p.isDeleted)) errs.push(`Магазин №${form.storeNumber} уже существует`);
+    
+    // Валидация дат
+    const dateFields = [
+      { value: form.closureDate, name: 'Закрытие для покупателей' },
+      { value: form.demolitionDate, name: 'Демонтаж' },
+      { value: form.installationDate, name: 'Монтаж' },
+      { value: form.techOpenDate, name: 'Техническое открытие' },
+    ];
+    
+    for (const field of dateFields) {
+      if (field.value && !validateDate(field.value)) {
+        errs.push(`Некорректная дата "${field.name}": ${field.value}. Формат: ДД.ММ.ГГГГ`);
+      }
+    }
+    
     return errs;
   };
 

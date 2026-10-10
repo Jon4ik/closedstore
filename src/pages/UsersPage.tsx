@@ -15,7 +15,26 @@ export default function UsersPage() {
   }
 
   const handleAdd = () => {
-    if (!newUser.username || !newUser.password || !newUser.fullName) return;
+    if (!newUser.username.trim()) {
+      alert('Укажите логин');
+      return;
+    }
+    if (!newUser.password.trim()) {
+      alert('Укажите пароль');
+      return;
+    }
+    if (newUser.password.length < 6) {
+      alert('Пароль должен содержать минимум 6 символов');
+      return;
+    }
+    if (!newUser.fullName.trim()) {
+      alert('Укажите ФИО');
+      return;
+    }
+    if (users.find(u => u.username === newUser.username.trim())) {
+      alert(`Пользователь с логином "${newUser.username}" уже существует`);
+      return;
+    }
     addUser(newUser);
     setNewUser({ username: '', password: '', fullName: '', role: roles[0]?.id || '', isActive: true });
     setShowAddForm(false);
@@ -28,6 +47,19 @@ export default function UsersPage() {
 
   const saveEdit = () => {
     if (editingId && editData) {
+      if (!editData.username.trim()) {
+        alert('Укажите логин');
+        return;
+      }
+      if (!editData.fullName.trim()) {
+        alert('Укажите ФИО');
+        return;
+      }
+      // Проверяем уникальность логина (исключая текущего пользователя)
+      if (users.find(u => u.username === editData.username.trim() && u.id !== editingId)) {
+        alert(`Пользователь с логином "${editData.username}" уже существует`);
+        return;
+      }
       updateUser(editingId, editData);
       setEditingId(null);
       setEditData(null);
