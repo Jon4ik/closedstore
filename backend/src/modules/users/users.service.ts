@@ -16,7 +16,7 @@ export class UsersService {
     return user;
   }
 
-  async create(data: any) {
+  async create(data: any, userId?: string, userName?: string) {
     const exists = await this.prisma.user.findUnique({ where: { username: data.username } });
     if (exists) throw new ConflictException('Логин уже занят');
 
@@ -31,7 +31,7 @@ export class UsersService {
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         username: data.username,
         password: hashedPassword,
@@ -43,9 +43,28 @@ export class UsersService {
       },
       include: { role: true },
     });
+
+    // Логирование
+    if (userId) {
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          userName: userName || 'Система',
+          action: 'create_user',
+          field: 'user',
+          newValue: user.username,
+          details: `Создан пользователь ${user.fullName}`,
+        },
+      });
+    }
+
+    return user;
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: any, userId?: string, userName?: string) {
+    const existing = await this.prisma.user.findUnique({ where: { id }, include: { role: true } });
+    if (!existing) throw new NotFoundException('Пользователь не найден');
+
     // Подготовка данных для обновления
     const updateData: any = {
       username: data.username,
@@ -70,15 +89,55 @@ export class UsersService {
       };
     }
     
-    return this.prisma.user.update({ 
+    const user = await this.prisma.user.update({ 
       where: { id }, 
       data: updateData,
       include: { role: true } 
     });
+
+    // Логирование
+    if (userId) {
+      for (const [key, newValue] of Object.entries(data)) {
+        const oldValue = (existing as any)[key];
+        if (String(oldValue) !== String(newValue)) {
+          await this.prisma.auditLog.create({
+            data: {
+              userId,
+              userName: userName || 'Система',
+              action: 'update_user',
+              field: key,
+              oldValue: String(oldValue || ''),
+              newValue: String(newValue || ''),
+              details: `Изменено поле "${key}" пользователя ${user.fullName}`,
+            },
+          });
+        }
+      }
+    }
+
+    return user;
   }
 
-  async remove(id: string) {
-    // Полное удаление пользователя из БД
-    return this.prisma.user.delete({ where: { id } });
+  async remove(id: string, userId?: string, userName?: string) {
+    const existing = await this.prisma.user.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Пользователь не найден');
+
+    const user = await this.prisma.user.delete({ where: { id } });
+
+    // Логирование
+    if (userId) {
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          userName: userName || 'Система',
+          action: 'delete_user',
+          field: 'user',
+          oldValue: existing.username,
+          details: `Удалён пользователь ${existing.fullName}`,
+        },
+      });
+    }
+
+    return user;
   }
 }
