@@ -28,5 +28,5 @@ EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:4000/api/health || exit 1
 
-# Run with ts-node (no compilation needed)
-CMD ["npx", "ts-node", "-r", "tsconfig-paths/register", "src/main.ts"]
+# Run migrations, seed, and start application
+CMD sh -c "npx prisma migrate deploy && npx prisma db seed && npx ts-node -r tsconfig-paths/register src/main.ts"
