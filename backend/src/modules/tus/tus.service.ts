@@ -21,7 +21,6 @@ export class TUsService {
       await this.prisma.auditLog.create({
         data: {
           userId,
-          userName: userName || 'Система',
           action: 'create_tu',
           field: 'tu',
           newValue: tu.fullName,
@@ -47,7 +46,6 @@ export class TUsService {
           await this.prisma.auditLog.create({
             data: {
               userId,
-              userName: userName || 'Система',
               action: 'update_tu',
               field: key,
               oldValue: String(oldValue || ''),
@@ -73,7 +71,6 @@ export class TUsService {
       await this.prisma.auditLog.create({
         data: {
           userId,
-          userName: userName || 'Система',
           action: 'delete_tu',
           field: 'tu',
           oldValue: existing.fullName,
