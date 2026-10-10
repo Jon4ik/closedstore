@@ -21,10 +21,6 @@ export default function TUsPage() {
       alert('Укажите ФИО');
       return;
     }
-    if (!validatePhone(newTU.phone)) {
-      alert('Некорректный формат телефона. Пример: +7 (999) 123-45-67');
-      return;
-    }
     if (!validateEmail(newTU.email)) {
       alert('Некорректный формат email. Пример: zotov@company.ru');
       return;
@@ -43,10 +39,6 @@ export default function TUsPage() {
     if (editingId && editData) {
       if (!editData.fullName) {
         alert('Укажите ФИО');
-        return;
-      }
-      if (!validatePhone(editData.phone)) {
-        alert('Некорректный формат телефона. Пример: +7 (999) 123-45-67');
         return;
       }
       if (!validateEmail(editData.email)) {
@@ -71,8 +63,6 @@ export default function TUsPage() {
     }
     setDeleteConfirm(null);
   };
-
-  const getProjectCount = (tuId: string) => projects.filter(p => p.tuId === tuId && !p.isDeleted).length;
 
   return (
     <div className="space-y-6">
@@ -126,15 +116,12 @@ export default function TUsPage() {
               <th className="text-left px-4 py-3 font-medium text-gray-500">Должность</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Телефон</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500">Объектов</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500">Статус</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Действия</th>
             </tr>
           </thead>
           <tbody>
             {tus.map(tu => {
               const isEditing = editingId === tu.id;
-              const projectCount = getProjectCount(tu.id);
               return (
                 <tr key={tu.id} className="border-b border-gray-100 hover:bg-gray-50">
                   {isEditing ? (
@@ -149,13 +136,6 @@ export default function TUsPage() {
                         />
                       </td>
                       <td className="px-4 py-3"><input type="email" value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" placeholder="mail@mail.ru" /></td>
-                      <td className="px-4 py-3 text-gray-500">{projectCount}</td>
-                      <td className="px-4 py-3">
-                        <select value={editData.isActive ? 'active' : 'inactive'} onChange={e => setEditData({ ...editData, isActive: e.target.value === 'active' })} className="px-2 py-1 border border-gray-200 rounded text-sm">
-                          <option value="active">Активен</option>
-                          <option value="inactive">Неактивен</option>
-                        </select>
-                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button onClick={saveEdit} className="text-green-600 hover:bg-green-50 p-1 rounded text-xs font-medium">Сохранить</button>
@@ -169,12 +149,6 @@ export default function TUsPage() {
                       <td className="px-4 py-3 text-gray-600">{tu.position}</td>
                       <td className="px-4 py-3 text-gray-600">{tu.phone || '—'}</td>
                       <td className="px-4 py-3 text-gray-600">{tu.email || '—'}</td>
-                      <td className="px-4 py-3"><span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{projectCount}</span></td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded ${tu.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                          {tu.isActive ? 'Активен' : 'Неактивен'}
-                        </span>
-                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button onClick={() => startEdit(tu)} className="text-blue-600 hover:bg-blue-50 p-1.5 rounded"><Edit2 size={16} /></button>

@@ -27,20 +27,6 @@ export default function AddStoreModal() {
     if (!form.address.trim()) errs.push('Укажите адрес');
     if (projects.find(p => p.storeNumber === form.storeNumber.trim() && !p.isDeleted)) errs.push(`Магазин №${form.storeNumber} уже существует`);
     
-    // Валидация дат
-    const dateFields = [
-      { value: form.closureDate, name: 'Закрытие для покупателей' },
-      { value: form.demolitionDate, name: 'Демонтаж' },
-      { value: form.installationDate, name: 'Монтаж' },
-      { value: form.techOpenDate, name: 'Техническое открытие' },
-    ];
-    
-    for (const field of dateFields) {
-      if (field.value && !validateDate(field.value)) {
-        errs.push(`Некорректная дата "${field.name}": ${field.value}. Формат: ДД.ММ.ГГГГ`);
-      }
-    }
-    
     return errs;
   };
 
@@ -159,10 +145,37 @@ export default function AddStoreModal() {
 }
 
 function DateInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  // Конвертация из DD.MM.YYYY в YYYY-MM-DD для input type="date"
+  const toInputDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const match = dateStr.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (match) {
+      const [, day, month, year] = match;
+      return `${year}-${month}-${day}`;
+    }
+    return '';
+  };
+  
+  // Конвертация из YYYY-MM-DD в DD.MM.YYYY
+  const fromInputDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) {
+      const [, year, month, day] = match;
+      return `${day}.${month}.${year}`;
+    }
+    return '';
+  };
+  
   return (
     <div className="flex items-center gap-3">
       <label className="text-sm text-gray-600 w-48 flex-shrink-0">{label}</label>
-      <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder="ДД.ММ.ГГГГ" className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <input 
+        type="date" 
+        value={toInputDate(value)} 
+        onChange={e => onChange(fromInputDate(e.target.value))} 
+        className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+      />
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Trash2, AlertTriangle } from 'lucide-react';
+import { formatDateDisplay } from '../utils/format';
 
 export default function AuditPage() {
-  const { auditLog, clearAuditLog, hasPermission } = useStore();
+  const { auditLog, clearAuditLog, hasPermission, projects } = useStore();
   const [clearConfirm, setClearConfirm] = useState(false);
   const [filter, setFilter] = useState({ action: '', search: '' });
 
@@ -94,7 +95,8 @@ export default function AuditPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Дата/время</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Дата</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Объект</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Пользователь</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Действие</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Описание</th>
@@ -103,30 +105,50 @@ export default function AuditPage() {
             </thead>
             <tbody>
               {filteredLog.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Нет записей</td></tr>
-              ) : filteredLog.map(log => (
-                <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">{new Date(log.timestamp).toLocaleString('ru-RU')}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{log.userName}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded ${actionColors[log.action] || 'bg-gray-100 text-gray-700'}`}>
-                      {actionLabels[log.action] || log.action}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">{log.details}</td>
-                  <td className="px-4 py-3">
-                    {log.oldValue && log.oldValue !== '—' && log.oldValue !== '' ? (
-                      <div className="text-xs">
-                        <span className="text-red-600 line-through">{log.oldValue}</span>
-                        {' → '}
-                        <span className="text-green-600">{log.newValue}</span>
-                      </div>
-                    ) : log.newValue ? (
-                      <span className="text-xs text-green-600">{log.newValue}</span>
-                    ) : '—'}
-                  </td>
-                </tr>
-              ))}
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Нет записей</td></tr>
+              ) : filteredLog.map(log => {
+                const project = log.storeId ? projects.find(p => p.id === log.storeId) : null;
+                const timestamp = new Date(log.timestamp);
+                const dateStr = `${String(timestamp.getDate()).padStart(2, '0')}.${String(timestamp.getMonth() + 1).padStart(2, '0')}.${timestamp.getFullYear()}`;
+                const timeStr = `${String(timestamp.getHours()).padStart(2, '0')}:${String(timestamp.getMinutes()).padStart(2, '0')}`;
+                
+                return (
+                  <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">
+                      <div>{dateStr}</div>
+                      <div className="text-gray-400">{timeStr}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {project ? (
+                        <div className="text-xs">
+                          <div className="font-medium text-gray-900">№{project.storeNumber}</div>
+                          <div className="text-gray-500 truncate max-w-[150px]" title={project.address}>{project.address}</div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-900 text-xs">{log.userName}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs px-2 py-0.5 rounded ${actionColors[log.action] || 'bg-gray-100 text-gray-700'}`}>
+                        {actionLabels[log.action] || log.action}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 text-xs">{log.details}</td>
+                    <td className="px-4 py-3">
+                      {log.oldValue && log.oldValue !== '—' && log.oldValue !== '' ? (
+                        <div className="text-xs">
+                          <span className="text-red-600 line-through">{log.oldValue}</span>
+                          {' → '}
+                          <span className="text-green-600">{log.newValue}</span>
+                        </div>
+                      ) : log.newValue ? (
+                        <span className="text-xs text-green-600">{log.newValue}</span>
+                      ) : '—'}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
