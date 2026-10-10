@@ -113,7 +113,18 @@ export default function RolesPage() {
   modules.forEach(m => m.permissions.forEach(p => { permLabels[p.key] = p.label; }));
 
   const handleAdd = () => {
-    if (!newRole.name) return;
+    if (!newRole.name.trim()) {
+      alert('Укажите название роли');
+      return;
+    }
+    if (roles.find(r => r.name === newRole.name.trim())) {
+      alert(`Роль "${newRole.name}" уже существует`);
+      return;
+    }
+    if (newRole.permissions.length === 0) {
+      alert('Выберите хотя бы одно разрешение');
+      return;
+    }
     addRole(newRole);
     setNewRole({ name: '', description: '', permissions: [], isSystem: false });
     setShowAddForm(false);
@@ -126,6 +137,19 @@ export default function RolesPage() {
 
   const saveEdit = () => {
     if (editingId && editData) {
+      if (!editData.name.trim()) {
+        alert('Укажите название роли');
+        return;
+      }
+      // Проверяем уникальность имени (исключая текущую роль)
+      if (roles.find(r => r.name === editData.name.trim() && r.id !== editingId)) {
+        alert(`Роль "${editData.name}" уже существует`);
+        return;
+      }
+      if (editData.permissions.length === 0) {
+        alert('Выберите хотя бы одно разрешение');
+        return;
+      }
       updateRole(editingId, editData);
       setEditingId(null);
       setEditData(null);

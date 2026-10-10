@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Plus, Edit2, Trash2, Phone, Mail, Check } from 'lucide-react';
+import { validatePhone, validateEmail } from '../utils/validation';
 
 export default function TUsPage() {
   const { tus, projects, addTU, updateTU, deleteTU, hasPermission } = useStore();
@@ -13,18 +14,6 @@ export default function TUsPage() {
   if (!hasPermission('manage_tus')) {
     return <div className="text-center py-12 text-gray-500">Нет доступа к этой странице</div>;
   }
-
-  const validatePhone = (phone: string): boolean => {
-    if (!phone) return true; // Пустой телефон допустим
-    const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ''));
-  };
-
-  const validateEmail = (email: string): boolean => {
-    if (!email) return true; // Пустой email допустим
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
 
   const handleAdd = () => {
     if (!newTU.fullName) {

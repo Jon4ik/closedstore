@@ -1,9 +1,60 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 
 @Injectable()
 export class StoresService {
   constructor(private prisma: PrismaService) {}
+
+  // Конвертация даты из формата "ДД.ММ.ГГГГ" в ISO-8601
+  private convertDate(dateStr: string | null): Date | null {
+    if (!dateStr) return null;
+    
+    // Проверяем формат ДД.ММ.ГГГГ
+    const match = dateStr.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (match) {
+      const [, day, month, year] = match;
+      const date = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    
+    // Если уже ISO формат, возвращаем как есть
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+    
+    throw new BadRequestException(`Некорректный формат даты: ${dateStr}. Ожидается формат ДД.ММ.ГГГГ`);
+  }
+
+  // Валидация дат
+  private validateDates(data: any) {
+    const dateFields = ['closureDate', 'demolitionDate', 'installationDate', 'techOpenDate'];
+    const dates: { field: string; date: Date }[] = [];
+    
+    for (const field of dateFields) {
+      if (data[field]) {
+        try {
+          const date = this.convertDate(data[field]);
+          if (date) {
+            dates.push({ field, date });
+          }
+        } catch (error) {
+          throw new BadRequestException(`Некорректная дата в поле "${field}": ${data[field]}`);
+        }
+      }
+    }
+    
+    // Проверяем порядок дат
+    for (let i = 0; i < dates.length - 1; i++) {
+      if (dates[i].date > dates[i + 1].date) {
+        throw new BadRequestException(
+          `Дата "${dates[i + 1].field}" не может быть раньше даты "${dates[i].field}"`
+        );
+      }
+    }
+  }
 
   async findAll(query: any) {
     const { search, workType, status, tuId, city, page = 1, limit = 50 } = query;
@@ -46,30 +97,42 @@ export class StoresService {
   }
 
   async create(data: any, userId: string, userName: string) {
+    // Валидация дат
+    this.validateDates(data);
+    
+    // Конвертация дат в ISO формат
+    const convertedData = {
+      ...data,
+      closureDate: this.convertDate(data.closureDate),
+      demolitionDate: this.convertDate(data.demolitionDate),
+      installationDate: this.convertDate(data.installationDate),
+      techOpenDate: this.convertDate(data.techOpenDate),
+    };
+
     // Проверяем что tuId существует
-    if (data.tuId) {
-      const tuExists = await this.prisma.tU.findUnique({ where: { id: data.tuId } });
+    if (convertedData.tuId) {
+      const tuExists = await this.prisma.tU.findUnique({ where: { id: convertedData.tuId } });
       if (!tuExists) {
         // Если TU не найден, используем первого доступного
         const firstTU = await this.prisma.tU.findFirst({ where: { isActive: true } });
         if (firstTU) {
-          data.tuId = firstTU.id;
+          convertedData.tuId = firstTU.id;
         } else {
-          throw new Error('Не найдено ни одного активного ТУ. Сначала создайте ТУ.');
+          throw new BadRequestException('Не найдено ни одного активного ТУ. Сначала создайте ТУ.');
         }
       }
     } else {
       // Если tuId не указан, используем первого доступного
       const firstTU = await this.prisma.tU.findFirst({ where: { isActive: true } });
       if (firstTU) {
-        data.tuId = firstTU.id;
+        convertedData.tuId = firstTU.id;
       } else {
-        throw new Error('Не найдено ни одного активного ТУ. Сначала создайте ТУ.');
+        throw new BadRequestException('Не найдено ни одного активного ТУ. Сначала создайте ТУ.');
       }
     }
 
     const store = await this.prisma.storeProject.create({
-      data: { ...data, createdBy: userId },
+      data: { ...convertedData, createdBy: userId },
       include: { tu: true },
     });
 
@@ -89,9 +152,21 @@ export class StoresService {
     const existing = await this.prisma.storeProject.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Объект не найден');
 
+    // Валидация дат если они есть в данных
+    this.validateDates(data);
+    
+    // Конвертация дат в ISO формат
+    const convertedData = { ...data };
+    const dateFields = ['closureDate', 'demolitionDate', 'installationDate', 'techOpenDate'];
+    for (const field of dateFields) {
+      if (convertedData[field] !== undefined) {
+        convertedData[field] = this.convertDate(convertedData[field]);
+      }
+    }
+
     const store = await this.prisma.storeProject.update({
       where: { id },
-      data,
+      data: convertedData,
       include: { tu: true },
     });
 
