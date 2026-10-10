@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { LayoutDashboard, Table2, CalendarDays, LogOut, Menu, X, User } from 'lucide-react';
+import { LayoutDashboard, Table2, CalendarDays, LogOut, Menu, X, User, Users, Shield, UserCheck, FileText } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,10 +19,10 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
   ];
 
   const adminNavItems = [
-    { id: 'users', label: 'Пользователи', icon: User, permission: 'manage_users' },
-    { id: 'roles', label: 'Роли', icon: User, permission: 'manage_roles' },
-    { id: 'tus', label: 'Справочник ТУ', icon: User, permission: 'manage_tus' },
-    { id: 'audit', label: 'Аудит', icon: User, permission: 'view_audit' },
+    { id: 'users', label: 'Пользователи', icon: Users, permission: 'manage_users' },
+    { id: 'roles', label: 'Роли', icon: Shield, permission: 'manage_roles' },
+    { id: 'tus', label: 'Справочник ТУ', icon: UserCheck, permission: 'manage_tus' },
+    { id: 'audit', label: 'Аудит', icon: FileText, permission: 'view_audit' },
   ];
 
   const currentRole = currentUser && roles.length > 0 ? roles.find(r => r.id === currentUser.role) : null;

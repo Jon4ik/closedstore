@@ -25,7 +25,6 @@ export default function AddStoreModal() {
       errs.push('Номер магазина должен содержать от 1 до 4 цифр');
     }
     if (!form.address.trim()) errs.push('Укажите адрес');
-    if (projects.find(p => p.storeNumber === form.storeNumber.trim() && !p.isDeleted)) errs.push(`Магазин №${form.storeNumber} уже существует`);
     
     return errs;
   };
