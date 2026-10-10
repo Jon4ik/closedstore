@@ -99,13 +99,6 @@ export default function RolesPage() {
         { key: 'clear_audit', label: 'Очистка журнала' },
       ]
     },
-    {
-      name: 'Настройки',
-      key: 'settings',
-      permissions: [
-        { key: 'settings', label: 'Доступ к настройкам системы' },
-      ]
-    },
   ];
 
   const allPermissions = modules.flatMap(m => m.permissions.map(p => p.key));

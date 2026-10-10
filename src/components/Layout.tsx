@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { LayoutDashboard, Table2, CalendarDays, LogOut, Menu, X, User, Users, Shield, UserCheck, FileText, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Table2, CalendarDays, LogOut, Menu, X, User, Users, Shield, UserCheck, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -24,7 +24,6 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
     { id: 'roles', label: 'Роли', icon: Shield, permission: 'manage_roles' },
     { id: 'tus', label: 'Справочник ТУ', icon: UserCheck, permission: 'manage_tus' },
     { id: 'audit', label: 'Аудит', icon: FileText, permission: 'view_audit' },
-    { id: 'settings', label: 'Настройки', icon: Settings, permission: 'settings' },
   ];
 
   const currentRole = currentUser && roles.length > 0 ? roles.find(r => r.id === currentUser.role) : null;
