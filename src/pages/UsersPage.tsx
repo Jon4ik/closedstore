@@ -6,7 +6,7 @@ export default function UsersPage() {
   const { users, roles, addUser, updateUser, deleteUser, currentUser, hasPermission } = useStore();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [newUser, setNewUser] = useState({ username: '', password: '', fullName: '', role: roles[0]?.id || '', isActive: true });
+  const [newUser, setNewUser] = useState({ username: '', password: '', fullName: '', roleId: roles[0]?.id || '', isActive: true });
   const [editData, setEditData] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
@@ -35,14 +35,14 @@ export default function UsersPage() {
       alert(`Пользователь с логином "${newUser.username}" уже существует`);
       return;
     }
-    addUser(newUser);
-    setNewUser({ username: '', password: '', fullName: '', role: roles[0]?.id || '', isActive: true });
+    addUser({ ...newUser, role: newUser.roleId });
+    setNewUser({ username: '', password: '', fullName: '', roleId: roles[0]?.id || '', isActive: true });
     setShowAddForm(false);
   };
 
   const startEdit = (user: any) => {
     setEditingId(user.id);
-    setEditData({ username: user.username, fullName: user.fullName, role: user.role, isActive: user.isActive });
+    setEditData({ username: user.username, fullName: user.fullName, roleId: user.role, isActive: user.isActive });
   };
 
   const saveEdit = async () => {
@@ -61,7 +61,7 @@ export default function UsersPage() {
         return;
       }
       try {
-        await updateUser(editingId, editData);
+        await updateUser(editingId, { ...editData, role: editData.roleId });
         setEditingId(null);
         setEditData(null);
       } catch (error) {
@@ -119,7 +119,7 @@ export default function UsersPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Роль</label>
-              <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+              <select value={newUser.roleId} onChange={e => setNewUser({ ...newUser, roleId: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                 {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
             </div>
@@ -152,7 +152,7 @@ export default function UsersPage() {
                       <td className="px-4 py-3"><input type="text" value={editData.username} onChange={e => setEditData({ ...editData, username: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" /></td>
                       <td className="px-4 py-3"><input type="text" value={editData.fullName} onChange={e => setEditData({ ...editData, fullName: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" /></td>
                       <td className="px-4 py-3">
-                        <select value={editData.role} onChange={e => setEditData({ ...editData, role: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm">
+                        <select value={editData.roleId} onChange={e => setEditData({ ...editData, roleId: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm">
                           {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                         </select>
                       </td>

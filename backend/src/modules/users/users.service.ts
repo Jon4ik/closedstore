@@ -28,6 +28,12 @@ export class UsersService {
   }
 
   async update(id: string, data: any) {
+    // Извлекаем roleId из объекта role если он передан
+    if (data.role && typeof data.role === 'object' && data.role.id) {
+      data.roleId = data.role.id;
+      delete data.role;
+    }
+    
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
     }

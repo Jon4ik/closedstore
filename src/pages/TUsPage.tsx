@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Plus, Edit2, Trash2, Phone, Mail, Check } from 'lucide-react';
 import { validatePhone, validateEmail } from '../utils/validation';
+import PhoneInput from '../components/PhoneInput';
 
 export default function TUsPage() {
   const { tus, projects, addTU, updateTU, deleteTU, hasPermission } = useStore();
@@ -99,7 +100,11 @@ export default function TUsPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Телефон</label>
-              <input type="tel" value={newTU.phone} onChange={e => setNewTU({ ...newTU, phone: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="+7(xxx)xxx-xx-xx" />
+              <PhoneInput
+                value={newTU.phone}
+                onChange={value => setNewTU({ ...newTU, phone: value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
@@ -136,7 +141,13 @@ export default function TUsPage() {
                     <>
                       <td className="px-4 py-3"><input type="text" value={editData.fullName} onChange={e => setEditData({ ...editData, fullName: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" /></td>
                       <td className="px-4 py-3"><input type="text" value={editData.position} onChange={e => setEditData({ ...editData, position: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" /></td>
-                      <td className="px-4 py-3"><input type="tel" value={editData.phone} onChange={e => setEditData({ ...editData, phone: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" placeholder="+7(xxx)xxx-xx-xx" /></td>
+                      <td className="px-4 py-3">
+                        <PhoneInput
+                          value={editData.phone}
+                          onChange={value => setEditData({ ...editData, phone: value })}
+                          className="px-2 py-1 border border-gray-200 rounded text-sm w-full"
+                        />
+                      </td>
                       <td className="px-4 py-3"><input type="email" value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" placeholder="mail@mail.ru" /></td>
                       <td className="px-4 py-3 text-gray-500">{projectCount}</td>
                       <td className="px-4 py-3">

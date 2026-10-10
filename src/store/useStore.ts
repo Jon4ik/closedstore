@@ -273,7 +273,12 @@ export const useStore = create<AppState>((set, get) => ({
   loadUsers: async () => {
     try {
       const users = await apiClient.getUsers();
-      set({ users });
+      // Нормализуем данные: извлекаем roleId из объекта role
+      const normalizedUsers = users.map((user: any) => ({
+        ...user,
+        role: user.role?.id || user.roleId || '',
+      }));
+      set({ users: normalizedUsers });
     } catch (error) {
       console.error('Failed to load users:', error);
     }

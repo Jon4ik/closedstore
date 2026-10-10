@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { calculateProjectStatus, calculateStages, getNearestEvent, getOverdueInfo } from '../utils/statusCalculator';
 import { X, Edit3, Check, AlertTriangle, Clock, MapPin, User, Calendar, MessageSquare, History, ChevronDown, ChevronUp, Send, Palette } from 'lucide-react';
 import { validateDate } from '../utils/validation';
+import { formatDate } from '../utils/format';
 
 export default function StoreCard() {
   const { selectedProjectId, isCardOpen, closeCard, projects, tus, auditLog, updateProject, currentUser, isEditing, setEditing, hasPermission, addComment, getProjectComments, loadComments } = useStore();
@@ -33,8 +34,10 @@ export default function StoreCard() {
   const handleStartEdit = () => {
     setEditData({
       address: project.address,
-      closureDate: project.closureDate || '', demolitionDate: project.demolitionDate || '',
-      installationDate: project.installationDate || '', techOpenDate: project.techOpenDate || '',
+      closureDate: formatDate(project.closureDate),
+      demolitionDate: formatDate(project.demolitionDate),
+      installationDate: formatDate(project.installationDate),
+      techOpenDate: formatDate(project.techOpenDate),
       tuId: project.tuId, comment: project.comment, manualStatus: project.manualStatus, rowColor: project.rowColor,
     });
     setEditing(true);
