@@ -6,7 +6,7 @@ import { validateDate } from '../utils/validation';
 import { formatDate } from '../utils/format';
 
 export default function StoreCard() {
-  const { selectedProjectId, isCardOpen, closeCard, projects, tus, auditLog, updateProject, currentUser, isEditing, setEditing, hasPermission, addComment, getProjectComments, loadComments } = useStore();
+  const { selectedProjectId, isCardOpen, closeCard, projects, tus, users, auditLog, updateProject, currentUser, isEditing, setEditing, hasPermission, addComment, getProjectComments, loadComments } = useStore();
   const [editData, setEditData] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -343,15 +343,18 @@ export default function StoreCard() {
                 <div className="space-y-2 max-h-96 overflow-y-auto mb-3">
                   {projectComments.length === 0 ? (
                     <p className="text-sm text-gray-400 italic">Нет комментариев</p>
-                  ) : projectComments.map(c => (
-                    <div key={c.id} className="bg-gray-50 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-gray-700">{c.userName}</span>
-                        <span className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleString('ru-RU')}</span>
+                  ) : projectComments.map(c => {
+                    const user = users.find(u => u.id === c.userId);
+                    return (
+                      <div key={c.id} className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-gray-700">{user?.fullName || c.userName}</span>
+                          <span className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleString('ru-RU')}</span>
+                        </div>
+                        <p className="text-sm text-gray-700">{c.text}</p>
                       </div>
-                      <p className="text-sm text-gray-700">{c.text}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 {hasPermission('add_comments') || hasPermission('edit') ? (
                   <div className="flex items-center gap-2">
