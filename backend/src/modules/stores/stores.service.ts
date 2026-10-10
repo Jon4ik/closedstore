@@ -178,7 +178,7 @@ export class StoresService {
     // Без нормализации любое сохранение карточки фиксировалось как
     // "Изменено поле demolitionDate/closureDate", хотя дата не менялась.
     const skipKeys = ['id', 'createdAt', 'updatedAt', 'createdBy'];
-    for (const [key, rawNewValue] of Object.entries(data)) {
+    for (const [key, newValue] of Object.entries(data)) {
       if (skipKeys.includes(key)) continue;
       if (!(key in existing)) continue;
 
@@ -218,17 +218,17 @@ export class StoresService {
           oldValueDisplay = this.formatDateForAudit(oldValue);
           newValueDisplay = this.formatDateForAudit(newValue);
         }
-      }
 
-      await this.prisma.auditLog.create({
-        data: {
-          storeId: id, userId,
-          action: 'update', field: key,
-          oldValue: oldValueDisplay,
-          newValue: newValueDisplay,
-          details: `Изменено поле "${key}"`,
-        },
-      });
+        await this.prisma.auditLog.create({
+          data: {
+            storeId: id, userId,
+            action: 'update', field: key,
+            oldValue: oldValueDisplay,
+            newValue: newValueDisplay,
+            details: `Изменено поле "${key}"`,
+          },
+        });
+      }
     }
 
     return store;
