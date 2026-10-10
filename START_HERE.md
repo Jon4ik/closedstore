@@ -105,6 +105,30 @@ tail -f logs/frontend.log
 
 ## Решение проблем
 
+### Ошибка Docker: "Cannot find module '/app/dist/main'"
+
+Если backend не может найти скомпилированный код в Docker:
+
+```bash
+# Пересобрать backend
+chmod +x rebuild-backend.sh
+./rebuild-backend.sh
+
+# Проверить логи
+docker compose logs -f backend
+```
+
+Или полная очистка:
+
+```bash
+docker compose down --rmi all
+docker system prune -a
+docker compose build --no-cache
+docker compose up -d
+```
+
+Подробнее: [QUICK_FIX_BACKEND.md](QUICK_FIX_BACKEND.md)
+
 ### Ошибка Prisma P3005: "The database schema is not empty"
 
 Если база данных уже содержит таблицы, но Prisma не может применить миграции:
@@ -195,6 +219,10 @@ sudo systemctl restart postgresql
 - `stop.sh` - Остановка проекта
 - `status.sh` - Проверка статуса
 - `init-db.sh` - Инициализация базы данных
+- `rebuild-backend.sh` - Пересборка backend контейнера
+- `baseline-migration.sh` - Создание baseline миграции
+- `reset-database.sh` - Очистка базы данных
+- `fix-prisma.sh` - Исправление проблем с Prisma
 
 ---
 
