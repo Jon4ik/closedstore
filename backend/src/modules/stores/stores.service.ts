@@ -173,39 +173,24 @@ export class StoresService {
       include: { tu: true },
     });
 
-    // Audit - записываем читаемые значения
-    for (const [key, newValue] of Object.entries(data)) {
+    // Audit - сравниваем нормализованные значения, чтобы не писать
+    // ложные изменения дат (Date из БД vs строка ДД.ММ.ГГГГ из формы).
+    // Без нормализации любое сохранение карточки фиксировалось как
+    // "Изменено поле demolitionDate/closureDate", хотя дата не менялась.
+    const skipKeys = ['id', 'createdAt', 'updatedAt', 'createdBy'];
+    for (const [key, rawNewValue] of Object.entries(data)) {
+      if (skipKeys.includes(key)) continue;
+      if (!(key in existing)) continue;
+
       const oldValue = (existing as any)[key];
-      if (String(oldValue) !== String(newValue)) {
-        let oldValueDisplay = String(oldValue || '');
-        let newValueDisplay = String(newValue || '');
-        
-        // Для tuId записываем имя ТУ вместо ID
-        if (key === 'tuId') {
-          oldValueDisplay = existing.tu?.fullName || oldValue;
-          if (newValue) {
-            const newTu = await this.prisma.tU.findUnique({ where: { id: String(newValue) } });
-            newValueDisplay = newTu?.fullName || String(newValue);
-          }
-        }
-        
-        // Для дат форматируем в dd.mm.yyyy
-        if (dateFields.includes(key)) {
-          oldValueDisplay = this.formatDateForAudit(oldValue);
-          newValueDisplay = this.formatDateForAudit(newValue);
-        }
-        
-        await this.prisma.auditLog.create({
-          data: {
-            storeId: id, userId, userName,
-            action: 'update', field: key,
-            oldValue: oldValueDisplay,
-            newValue: newValueDisplay,
-            details: `Изменено поле "${key}"`,
-          },
-        });
-      }
-    }
+      const oldNorm = this.normalizeForCompare(key, oldValue);
+      const newNorm = this.normalizeForCompare(key, rawNewValue);
+
+      if (oldNorm === newNorm) continue;
+
+      const newValue = rawNewValue;
+      let oldValueDisplay = oldNorm;
+      let newValueDisplay = newNorm;
 
     return store;
   }
