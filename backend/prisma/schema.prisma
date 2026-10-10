@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String    @id @default(uuid())
+  username   String    @unique
+  password   String
+  userName   String?
+  fullName   String
+  roleId     String
+  role       Role      @relation(fields: [roleId], references: [id])
+  isActive   Boolean   @default(true)
+  chatId     String?
+  telegramId String?
+  theme      String    @default("light")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  comments   Comment[]
+  auditLogs  AuditLog[]
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String   @default("")
+  permissions String[]
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  users       User[]
+  @@map("roles")
+}
+
+model TU {
+  id        String         @id @default(uuid())
+  fullName  String
+  position  String         @default("Территориальный управляющий")
+  phone     String?
+  email     String?
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  projects  StoreProject[]
+  @@map("tus")
+}
+
+model StoreProject {
+  id               String    @id @default(uuid())
+  storeNumber      String
+  address          String
+  city             String
+  workType         String
+  closureDate      DateTime?
+  demolitionDate   DateTime?
+  installationDate DateTime?
+  techOpenDate     DateTime?
+  tuId             String
+  tu               TU        @relation(fields: [tuId], references: [id])
+  rowColor         String    @default("")
+  comment          String    @default("")
+  status           String    @default("Запланирован")
+  manualStatus     String?
+  isDeleted        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  createdBy        String
+  comments         Comment[]
+  auditLogs        AuditLog[]
+  @@map("store_projects")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  storeId   String
+  store     StoreProject @relation(fields: [storeId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  text      String
+  createdAt DateTime @default(now())
+  @@index([storeId])
+  @@map("comments")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  storeId   String?
+  store     StoreProject? @relation(fields: [storeId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  timestamp DateTime @default(now())
+  action    String
+  field     String
+  oldValue  String   @default("")
+  newValue  String   @default("")
+  details   String   @default("")
+  @@index([userId])
+  @@index([storeId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+model LdapSettings {
+  id             String    @id @default(uuid())
+  host           String
+  port           Int       @default(389)
+  baseDn         String
+  bindDn         String
+  bindPassword   String
+  useSsl         Boolean   @default(false)
+  searchFilter   String    @default("(objectClass=user)")
+  titleAttribute String    @default("title")
+  titleValue     String    @default("Территориальный управляющий")
+  enabled        Boolean   @default(false)
+  lastSyncAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  @@map("ldap_settings")
+}

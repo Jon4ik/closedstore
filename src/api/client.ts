@@ -1,0 +1,254 @@
+const API_BASE_URL = '/api';
+
+class ApiClient {
+  private token: string | null = null;
+
+  setToken(token: string) {
+    this.token = token;
+  }
+
+  clearToken() {
+    this.token = null;
+  }
+
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Auth
+  async login(username: string, password: string) {
+    return this.request<{ access_token: string; user: any }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+  }
+
+  async logout() {
+    return this.request('/auth/logout', { method: 'POST' });
+  }
+
+  async getProfile() {
+    return this.request<any>('/auth/me');
+  }
+
+  // Projects
+  async getProjects(params?: any) {
+    const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+    return this.request<any>(`/stores${queryString}`);
+  }
+
+  async getProject(id: string) {
+    return this.request<any>(`/stores/${id}`);
+  }
+
+  async createProject(data: any) {
+    return this.request<any>('/stores', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateProject(id: string, data: any) {
+    return this.request<any>(`/stores/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProject(id: string) {
+    return this.request<any>(`/stores/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // TUs
+  async getTUs() {
+    return this.request<any[]>('/tus');
+  }
+
+  async createTU(data: any) {
+    return this.request<any>('/tus', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateTU(id: string, data: any) {
+    return this.request<any>(`/tus/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteTU(id: string) {
+    return this.request<any>(`/tus/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Users
+  async getUsers() {
+    return this.request<any[]>('/users');
+  }
+
+  async createUser(data: any) {
+    return this.request<any>('/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateUser(id: string, data: any) {
+    return this.request<any>(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteUser(id: string) {
+    return this.request<any>(`/users/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async updateProfile(id: string, data: { fullName?: string; chatId?: string; telegramId?: string; theme?: string }) {
+    return this.request<any>(`/users/profile/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async changePassword(id: string, oldPassword: string, newPassword: string) {
+    return this.request<any>(`/users/change-password/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+  }
+
+  // Roles
+  async getRoles() {
+    return this.request<any[]>('/roles');
+  }
+
+  async createRole(data: any) {
+    return this.request<any>('/roles', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateRole(id: string, data: any) {
+    return this.request<any>(`/roles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteRole(id: string) {
+    return this.request<any>(`/roles/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Audit
+  async getAuditLogs(params?: any) {
+    const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+    return this.request<any>(`/audit${queryString}`);
+  }
+
+  async clearAuditLogs() {
+    return this.request<any>('/audit/clear', {
+      method: 'DELETE',
+    });
+  }
+
+  // Dashboard
+  async getDashboard() {
+    return this.request<any>('/stores/dashboard');
+  }
+
+  // Import
+  async importExcel(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const headers: HeadersInit = {};
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/import/excel`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Import failed');
+    }
+
+    return response.json();
+  }
+
+  // Comments
+  async getComments(storeId: string) {
+    return this.request<any[]>(`/stores/${storeId}/comments`);
+  }
+
+  async addComment(storeId: string, text: string) {
+    return this.request<any>(`/stores/${storeId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+  }
+
+  async deleteComment(commentId: string) {
+    return this.request<any>(`/stores/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // LDAP
+  async getLdapSettings() {
+    return this.request<any>('/ldap/settings');
+  }
+
+  async saveLdapSettings(data: any) {
+    return this.request<any>('/ldap/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async testLdapConnection() {
+    return this.request<any>('/ldap/test', {
+      method: 'POST',
+    });
+  }
+
+  async syncLdapUsers() {
+    return this.request<any>('/ldap/sync', {
+      method: 'POST',
+    });
+  }
+}
+
+export const apiClient = new ApiClient();

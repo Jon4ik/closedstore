@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.gitignore
+README.md
+.env
+*.log
+.DS_Store
+coverage
+.nyc_output
+.vscode
+.idea
+*.md
+!prisma/migrations/**/*.sql

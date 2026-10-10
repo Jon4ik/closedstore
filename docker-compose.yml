@@ -1,0 +1,41 @@
+services:
+  # ============================================
+  # Backend API (NestJS)
+  # ============================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reconstruction-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      NODE_ENV: production
+      PORT: 4000
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - "4000:4000"
+    networks:
+      - app-network
+
+  # ============================================
+  # Frontend (React + Nginx)
+  # ============================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reconstruction-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5001:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
