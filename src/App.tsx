@@ -14,7 +14,7 @@ import TUsPage from './pages/TUsPage';
 import AuditPage from './pages/AuditPage';
 
 export default function App() {
-  const { currentUser, restoreSession, loadProjects, loadTUs, loadUsers, loadRoles } = useStore();
+  const { currentUser, restoreSession, loadProjects, loadTUs, loadUsers, loadRoles, loadAuditLog } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   // Восстанавливаем сессию при загрузке
@@ -29,8 +29,9 @@ export default function App() {
       loadTUs();
       loadUsers();
       loadRoles();
+      loadAuditLog();
     }
-  }, [currentUser, loadProjects, loadTUs, loadUsers, loadRoles]);
+  }, [currentUser, loadProjects, loadTUs, loadUsers, loadRoles, loadAuditLog]);
 
   if (!currentUser) return <LoginPage />;
 
