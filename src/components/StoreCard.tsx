@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { calculateProjectStatus, calculateStages, getNearestEvent, getOverdueInfo } from '../utils/statusCalculator';
 import { X, Edit3, Check, AlertTriangle, Clock, MapPin, User, Calendar, MessageSquare, History, ChevronDown, ChevronUp, Send, Palette } from 'lucide-react';
 
 export default function StoreCard() {
-  const { selectedProjectId, isCardOpen, closeCard, projects, tus, auditLog, updateProject, currentUser, isEditing, setEditing, hasPermission, addComment, getProjectComments } = useStore();
+  const { selectedProjectId, isCardOpen, closeCard, projects, tus, auditLog, updateProject, currentUser, isEditing, setEditing, hasPermission, addComment, getProjectComments, loadComments } = useStore();
   const [editData, setEditData] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [activeTab, setActiveTab] = useState<'main' | 'stages' | 'comments'>('main');
 
   const project = projects.find(p => p.id === selectedProjectId);
+  
+  // Загружаем комментарии при открытии карточки
+  useEffect(() => {
+    if (selectedProjectId && isCardOpen) {
+      loadComments(selectedProjectId);
+    }
+  }, [selectedProjectId, isCardOpen, loadComments]);
+  
   if (!project || !isCardOpen) return null;
 
   const status = calculateProjectStatus(project);

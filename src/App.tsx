@@ -14,13 +14,23 @@ import TUsPage from './pages/TUsPage';
 import AuditPage from './pages/AuditPage';
 
 export default function App() {
-  const { currentUser, restoreSession } = useStore();
+  const { currentUser, restoreSession, loadProjects, loadTUs, loadUsers, loadRoles } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   // Восстанавливаем сессию при загрузке
   useEffect(() => {
     restoreSession();
   }, [restoreSession]);
+
+  // Загружаем данные из API при входе
+  useEffect(() => {
+    if (currentUser) {
+      loadProjects();
+      loadTUs();
+      loadUsers();
+      loadRoles();
+    }
+  }, [currentUser, loadProjects, loadTUs, loadUsers, loadRoles]);
 
   if (!currentUser) return <LoginPage />;
 

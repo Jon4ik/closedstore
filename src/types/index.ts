@@ -78,9 +78,10 @@ export interface Notification {
 export interface SystemUser {
   id: string;
   username: string;
-  password: string;
+  password?: string;
   fullName: string;
   role: string;
+  permissions?: string[];
   isActive: boolean;
   createdAt: string;
 }

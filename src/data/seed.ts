@@ -1,8 +1,10 @@
 import { StoreProject, TU, SystemUser, Role } from '../types';
 
-// Пустые массивы - данные берутся из базы
+// Начальные данные больше не используются - все данные загружаются из PostgreSQL через API
 export const seedTUs: TU[] = [];
+export const seedProjects: StoreProject[] = [];
 
+// Системные роли (создаются при инициализации БД)
 export const seedRoles: Role[] = [
   { 
     id: 'role-admin', 
@@ -27,11 +29,9 @@ export const seedRoles: Role[] = [
   },
 ];
 
+// Системные пользователи (создаются при инициализации БД)
 export const seedUsers: SystemUser[] = [
   { id: 'user-1', username: 'admin', password: 'admin123', fullName: 'Администратор Системы', role: 'role-admin', isActive: true, createdAt: new Date().toISOString() },
   { id: 'user-2', username: 'manager', password: 'manager123', fullName: 'Иванов И.И.', role: 'role-manager', isActive: true, createdAt: new Date().toISOString() },
   { id: 'user-3', username: 'viewer', password: 'viewer123', fullName: 'Петров П.П.', role: 'role-viewer', isActive: true, createdAt: new Date().toISOString() },
 ];
-
-// Пустой массив - данные берутся из базы
-export const seedProjects: StoreProject[] = [];
