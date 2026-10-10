@@ -9,6 +9,7 @@ import { UsersModule } from './modules/users/users.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { ImportModule } from './modules/import/import.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { HealthController } from './health.controller';
 
 @Module({
