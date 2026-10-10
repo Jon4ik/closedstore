@@ -138,7 +138,7 @@ export class StoresService {
 
     await this.prisma.auditLog.create({
       data: {
-        storeId: store.id, userId, userName,
+        storeId: store.id, userId,
         action: 'create', field: 'project',
         details: `Создан объект №${store.storeNumber}`,
         newValue: store.storeNumber,
@@ -192,7 +192,44 @@ export class StoresService {
       let oldValueDisplay = oldNorm;
       let newValueDisplay = newNorm;
 
+      // Для tuId записываем имя ТУ вместо ID
+      if (key === 'tuId') {
+        oldValueDisplay = existing.tu?.fullName || oldNorm;
+        if (newValue) {
+          const newTu = await this.prisma.tU.findUnique({ where: { id: String(newValue) } });
+          newValueDisplay = newTu?.fullName || String(newValue);
+        }
+      }
+
+      await this.prisma.auditLog.create({
+        data: {
+          storeId: id, userId,
+          action: 'update', field: key,
+          oldValue: oldValueDisplay,
+          newValue: newValueDisplay,
+          details: `Изменено поле "${key}"`,
+        },
+      });
+    }
+
     return store;
+  }
+
+  // Нормализация значений для корректного сравнения при аудите.
+  private normalizeForCompare(key: string, value: any): string {
+    if (value === null || value === undefined || value === '') return '';
+    const dateFields = ['closureDate', 'demolitionDate', 'installationDate', 'techOpenDate'];
+    if (dateFields.includes(key)) {
+      return this.formatDateForAudit(value);
+    }
+    if (typeof value === 'object' && !(value instanceof Date)) {
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return String(value);
+      }
+    }
+    return String(value);
   }
   
   // Форматирование даты для аудита
@@ -220,7 +257,7 @@ export class StoresService {
 
     await this.prisma.auditLog.create({
       data: {
-        storeId: id, userId, userName,
+        storeId: id, userId,
         action: 'delete', field: 'project',
         oldValue: 'active', newValue: 'deleted',
         details: 'Объект удалён (soft delete)',
@@ -267,7 +304,6 @@ export class StoresService {
       data: {
         storeId,
         userId,
-        userName,
         text,
       },
     });
@@ -275,7 +311,7 @@ export class StoresService {
     // Аудит
     await this.prisma.auditLog.create({
       data: {
-        storeId, userId, userName,
+        storeId, userId,
         action: 'add_comment', field: 'comment',
         newValue: text.slice(0, 50),
         details: 'Добавлен комментарий',
@@ -294,7 +330,7 @@ export class StoresService {
     // Аудит
     await this.prisma.auditLog.create({
       data: {
-        storeId: comment.storeId, userId, userName,
+        storeId: comment.storeId, userId,
         action: 'delete_comment', field: 'comment',
         oldValue: comment.text.slice(0, 50),
         details: 'Удалён комментарий',
