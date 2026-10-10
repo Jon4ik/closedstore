@@ -373,17 +373,20 @@ export default function StoreCard() {
                 {showHistory && (
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {projectAudit.length === 0 ? <p className="text-sm text-gray-400 italic">Нет записей</p> :
-                      projectAudit.map(log => (
-                        <div key={log.id} className="bg-gray-50 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-gray-700">{log.userName}</span>
-                            <span className="text-xs text-gray-400">{new Date(log.timestamp).toLocaleString('ru-RU')}</span>
+                      projectAudit.map(log => {
+                        const user = users.find(u => u.id === log.userId);
+                        return (
+                          <div key={log.id} className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-medium text-gray-700">{user?.fullName || log.userName}</span>
+                              <span className="text-xs text-gray-400">{new Date(log.timestamp).toLocaleString('ru-RU')}</span>
+                            </div>
+                            <p className="text-sm"><span className="font-medium">{log.details}:</span>{' '}
+                              <span className="text-red-600 line-through">{log.oldValue}</span>{' → '}<span className="text-green-600">{log.newValue}</span>
+                            </p>
                           </div>
-                          <p className="text-sm"><span className="font-medium">{log.details}:</span>{' '}
-                            <span className="text-red-600 line-through">{log.oldValue}</span>{' → '}<span className="text-green-600">{log.newValue}</span>
-                          </p>
-                        </div>
-                      ))
+                        );
+                      })
                     }
                   </div>
                 )}

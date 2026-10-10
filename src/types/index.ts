@@ -84,6 +84,8 @@ export interface SystemUser {
   permissions?: string[];
   isActive: boolean;
   createdAt: string;
+  chatId?: string;
+  theme?: 'light' | 'dark' | 'system';
 }
 
 export interface Role {

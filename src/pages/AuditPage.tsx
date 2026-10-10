@@ -5,7 +5,7 @@ import { Trash2, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 export default function AuditPage() {
   const { auditLog, clearAuditLog, hasPermission, projects, users } = useStore();
   const [clearConfirm, setClearConfirm] = useState(false);
-  const [filter, setFilter] = useState({ action: '', search: '' });
+  const [filter, setFilter] = useState({ action: '', search: '', module: '' });
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   if (!hasPermission('view_audit')) {
@@ -24,6 +24,7 @@ export default function AuditPage() {
 
   const filteredLog = auditLog.filter(log => {
     if (filter.action && log.action !== filter.action) return false;
+    if (filter.module && getModule(log.action) !== filter.module) return false;
     if (filter.search) {
       const search = filter.search.toLowerCase();
       return log.details.toLowerCase().includes(search) || log.userName.toLowerCase().includes(search);
@@ -112,7 +113,21 @@ export default function AuditPage() {
 
       {/* Filters */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Подсистема</label>
+            <select value={filter.module} onChange={e => setFilter({ ...filter, module: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+              <option value="">Все подсистемы</option>
+              <option value="Пользователи">Пользователи</option>
+              <option value="Справочник ТУ">Справочник ТУ</option>
+              <option value="Роли">Роли</option>
+              <option value="Комментарии">Комментарии</option>
+              <option value="Авторизация">Авторизация</option>
+              <option value="Импорт">Импорт</option>
+              <option value="Объекты">Объекты</option>
+              <option value="Система">Система</option>
+            </select>
+          </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Тип действия</label>
             <select value={filter.action} onChange={e => setFilter({ ...filter, action: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">

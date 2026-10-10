@@ -82,8 +82,14 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
         <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-600"><Menu size={24} /></button>
-            <h2 className="text-lg font-semibold text-gray-800">Реконструкция — Закрытие</h2>
           </div>
+          <button 
+            onClick={() => onNavigate('profile')}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <User size={18} />
+            <span className="hidden sm:inline">Профиль</span>
+          </button>
         </header>
         <main className="p-4 lg:p-6">{children}</main>
       </div>

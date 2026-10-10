@@ -12,6 +12,7 @@ import UsersPage from './pages/UsersPage';
 import RolesPage from './pages/RolesPage';
 import TUsPage from './pages/TUsPage';
 import AuditPage from './pages/AuditPage';
+import ProfilePage from './pages/ProfilePage';
 
 export default function App() {
   const { currentUser, restoreSession, loadProjects, loadTUs, loadUsers, loadRoles, loadAuditLog, defaultWorkType } = useStore();
@@ -33,6 +34,22 @@ export default function App() {
     }
   }, [currentUser, loadProjects, loadTUs, loadUsers, loadRoles, loadAuditLog]);
 
+  // Динамический title
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      dashboard: 'Панель управления',
+      table: 'Таблица объектов',
+      calendar: 'Календарь',
+      users: 'Пользователи',
+      roles: 'Роли',
+      tus: 'Справочник ТУ',
+      audit: 'Аудит',
+      profile: 'Профиль',
+    };
+    
+    document.title = `${titles[currentPage] || 'Главная'} - Реконструкция`;
+  }, [currentPage]);
+
   if (!currentUser) return <LoginPage />;
 
   const renderPage = () => {
@@ -44,6 +61,7 @@ export default function App() {
       case 'roles': return <RolesPage />;
       case 'tus': return <TUsPage />;
       case 'audit': return <AuditPage />;
+      case 'profile': return <ProfilePage />;
       default: return <Dashboard />;
     }
   };

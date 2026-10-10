@@ -11,10 +11,20 @@ export default function TUsPage() {
   const [newTU, setNewTU] = useState({ fullName: '', position: 'Территориальный управляющий', phone: '', email: '', isActive: true });
   const [editData, setEditData] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   if (!hasPermission('manage_tus')) {
     return <div className="text-center py-12 text-gray-500">Нет доступа к этой странице</div>;
   }
+
+  const filteredTUs = tus.filter(tu => 
+    tu.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tu.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (tu.phone && tu.phone.includes(searchQuery)) ||
+    (tu.email && tu.email.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const getProjectCount = (tuId: string) => projects.filter(p => p.tuId === tuId && !p.isDeleted).length;
 
   const handleAdd = () => {
     if (!newTU.fullName) {
@@ -69,11 +79,22 @@ export default function TUsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Справочник ТУ</h1>
-          <p className="text-sm text-gray-500 mt-1">Технические управляющие, назначаемые на объекты</p>
+          <p className="text-sm text-gray-500 mt-1">Территориальные управляющие, назначаемые на объекты</p>
         </div>
         <button onClick={() => setShowAddForm(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
           <Plus size={16} /> Добавить ТУ
         </button>
+      </div>
+
+      {/* Поиск */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Поиск по ФИО, должности, телефону, email..."
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
       </div>
 
       {showAddForm && (
@@ -123,13 +144,21 @@ export default function TUsPage() {
               <th className="text-left px-4 py-3 font-medium text-gray-500">Должность</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Телефон</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500">Объектов</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Статус</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Действия</th>
             </tr>
           </thead>
           <tbody>
-            {tus.map(tu => {
+            {filteredTUs.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                  {searchQuery ? 'Ничего не найдено' : 'Нет записей'}
+                </td>
+              </tr>
+            ) : filteredTUs.map(tu => {
               const isEditing = editingId === tu.id;
+              const projectCount = getProjectCount(tu.id);
               return (
                 <tr key={tu.id} className="border-b border-gray-100 hover:bg-gray-50">
                   {isEditing ? (
@@ -144,6 +173,7 @@ export default function TUsPage() {
                         />
                       </td>
                       <td className="px-4 py-3"><input type="email" value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} className="px-2 py-1 border border-gray-200 rounded text-sm w-full" placeholder="mail@mail.ru" /></td>
+                      <td className="px-4 py-3 text-gray-500">{projectCount}</td>
                       <td className="px-4 py-3">
                         <select value={editData.isActive ? 'active' : 'inactive'} onChange={e => setEditData({ ...editData, isActive: e.target.value === 'active' })} className="px-2 py-1 border border-gray-200 rounded text-sm">
                           <option value="active">Активен</option>
@@ -163,6 +193,7 @@ export default function TUsPage() {
                       <td className="px-4 py-3 text-gray-600">{tu.position}</td>
                       <td className="px-4 py-3 text-gray-600">{tu.phone || '—'}</td>
                       <td className="px-4 py-3 text-gray-600">{tu.email || '—'}</td>
+                      <td className="px-4 py-3"><span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{projectCount}</span></td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded ${tu.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                           {tu.isActive ? 'Активен' : 'Неактивен'}
