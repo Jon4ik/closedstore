@@ -357,6 +357,32 @@ cd ..
 ./init-db.sh --sql
 ```
 
+### Ошибка: "P3005 - The database schema is not empty"
+
+Это означает, что база данных уже содержит таблицы, но Prisma не может применить миграции.
+
+**Быстрое решение:**
+
+```bash
+# Создайте baseline миграцию
+chmod +x baseline-migration.sh
+./baseline-migration.sh
+
+# Запустите проект
+./start.sh
+```
+
+**Или очистите базу и начните заново:**
+
+```bash
+chmod +x reset-database.sh
+./reset-database.sh
+./init-db.sh --sql
+./start.sh
+```
+
+Подробнее: [FIX_P3005.md](FIX_P3005.md)
+
 ### Frontend не открывается
 
 1. Проверьте, запущен ли frontend:
