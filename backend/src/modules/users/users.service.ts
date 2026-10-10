@@ -34,6 +34,7 @@ export class UsersService {
     const user = await this.prisma.user.create({
       data: {
         username: data.username,
+        userName: data.userName || data.fullName,
         password: hashedPassword,
         fullName: data.fullName,
         role: {
@@ -49,7 +50,6 @@ export class UsersService {
       await this.prisma.auditLog.create({
         data: {
           userId,
-          userName: userName || 'Система',
           action: 'create_user',
           field: 'user',
           newValue: user.username,
@@ -68,6 +68,7 @@ export class UsersService {
     // Подготовка данных для обновления
     const updateData: any = {
       username: data.username,
+      userName: data.userName || data.fullName,
       fullName: data.fullName,
       isActive: data.isActive,
     };
@@ -103,7 +104,6 @@ export class UsersService {
           await this.prisma.auditLog.create({
             data: {
               userId,
-              userName: userName || 'Система',
               action: 'update_user',
               field: key,
               oldValue: String(oldValue || ''),
@@ -129,7 +129,6 @@ export class UsersService {
       await this.prisma.auditLog.create({
         data: {
           userId,
-          userName: userName || 'Система',
           action: 'delete_user',
           field: 'user',
           oldValue: existing.username,

@@ -10,6 +10,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { ImportModule } from './modules/import/import.module';
 import { LdapModule } from './modules/ldap/ldap.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { HealthController } from './health.controller';
 
 @Module({
