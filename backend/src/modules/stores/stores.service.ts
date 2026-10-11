@@ -30,6 +30,20 @@ export class StoresService {
     return date;
   }
 
+  private dateOnly(value: unknown): string {
+    if (value === null || value === undefined || value === '') return '';
+    const date = value instanceof Date ? value : this.convertDate(value);
+    if (!date) return '';
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  private auditDate(value: unknown): string {
+    const key = this.dateOnly(value);
+    if (!key) return '';
+    const [year, month, day] = key.split('-');
+    return `${day}.${month}.${year}`;
+  }
+
   private validateDates(data: any) {
     const parsed: Array<{ field: string; date: Date }> = [];
     for (const field of DATE_FIELDS) {
@@ -173,7 +187,12 @@ export class StoresService {
       clean.tuId = tu.id;
     }
     for (const field of DATE_FIELDS) {
-      if (data[field] !== undefined) clean[field] = this.convertDate(data[field]);
+      if (data[field] !== undefined) {
+        const nextDate = this.convertDate(data[field]);
+        // These fields represent calendar dates, not timestamps. Ignore time-zone/time
+        // differences when a form submits an unchanged date.
+        if (this.dateOnly(existing[field]) !== this.dateOnly(nextDate)) clean[field] = nextDate;
+      }
     }
     if (Object.keys(clean).length === 0) throw new BadRequestException('Нет допустимых полей для изменения');
     this.validateDates({ ...existing, ...clean });
@@ -182,8 +201,9 @@ export class StoresService {
       const store = await tx.storeProject.update({ where: { id }, data: clean, include: { tu: true } });
       for (const [field, newValue] of Object.entries(clean)) {
         const oldValue = (existing as any)[field];
-        const normalizedOld = oldValue instanceof Date ? oldValue.toISOString() : String(oldValue ?? '');
-        const normalizedNew = newValue instanceof Date ? newValue.toISOString() : String(newValue ?? '');
+        const isDateField = (DATE_FIELDS as readonly string[]).includes(field);
+        const normalizedOld = isDateField ? this.auditDate(oldValue) : oldValue instanceof Date ? oldValue.toISOString() : String(oldValue ?? '');
+        const normalizedNew = isDateField ? this.auditDate(newValue) : newValue instanceof Date ? newValue.toISOString() : String(newValue ?? '');
         if (normalizedOld === normalizedNew) continue;
         await tx.auditLog.create({
           data: {
