@@ -4,7 +4,7 @@ import { calculateProjectStatus, getNearestEvent, parseDate } from '../utils/sta
 import { Search, Filter, Plus, Download, Upload } from 'lucide-react';
 import Filters from './Filters';
 import { exportToExcel } from '../utils/exportUtils';
-import { formatDateDisplay } from '../utils/format';
+import { formatDate, formatDateDisplay } from '../utils/format';
 
 type TabType = 'closures' | 'openings';
 
@@ -55,10 +55,11 @@ export default function StoreTable() {
             'Адрес': p.address,
             'Город': p.city,
             'Тип работ': p.workType,
-            'Закрытие': p.closureDate || '',
-            'Демонтаж': p.demolitionDate || '',
-            'Монтаж': p.installationDate || '',
-            'Тех. открытие': p.techOpenDate || '',
+            'Закрытие': formatDate(p.closureDate),
+            'Демонтаж': formatDate(p.demolitionDate),
+            'Монтаж': formatDate(p.installationDate),
+            'Тех. открытие': formatDate(p.techOpenDate),
+            'Номер ТУ / ID': p.tuId,
             'ТУ': getTUName(p.tuId),
             'Статус': calculateProjectStatus(p),
           };
