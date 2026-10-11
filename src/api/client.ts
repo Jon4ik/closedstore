@@ -79,6 +79,10 @@ class ApiClient {
     });
   }
 
+  async restoreProject(id: string) {
+    return this.request<any>(`/stores/${id}/restore`, { method: 'POST' });
+  }
+
   // TUs
   async getTUs() {
     return this.request<any[]>('/tus');
@@ -158,12 +162,6 @@ class ApiClient {
   async getAuditLogs(params?: any) {
     const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request<any>(`/audit${queryString}`);
-  }
-
-  async clearAuditLogs() {
-    return this.request<any>('/audit/clear', {
-      method: 'DELETE',
-    });
   }
 
   // Dashboard
