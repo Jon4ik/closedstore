@@ -3,6 +3,7 @@ import { RolesService } from './roles.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
+import { CreateRoleDto, UpdateRoleDto } from './dto/role.dto';
 
 @Controller('roles')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -17,13 +18,13 @@ export class RolesController {
 
   @Post()
   @RequirePermissions('manage_roles', 'settings')
-  create(@Body() body: any, @Request() req) {
+  create(@Body() body: CreateRoleDto, @Request() req) {
     return this.rolesService.create(body, req.user.sub, req.user.username);
   }
 
   @Put(':id')
   @RequirePermissions('manage_roles', 'settings')
-  update(@Param('id') id: string, @Body() body: any, @Request() req) {
+  update(@Param('id') id: string, @Body() body: UpdateRoleDto, @Request() req) {
     return this.rolesService.update(id, body, req.user.sub, req.user.username);
   }
 
