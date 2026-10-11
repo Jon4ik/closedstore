@@ -17,6 +17,16 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
+  const handleThemeChange = (nextTheme: 'light' | 'dark' | 'system') => {
+    setTheme(nextTheme);
+    const user = useStore.getState().currentUser;
+    if (user) {
+      const updatedUser = { ...user, theme: nextTheme };
+      useStore.setState({ currentUser: updatedUser });
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    }
+  };
+
   useEffect(() => {
     let active = true;
     apiClient.getProfile().then((profile: any) => {
@@ -150,7 +160,7 @@ export default function ProfilePage() {
           <h2 className="text-lg font-semibold text-gray-900">Тема оформления</h2>
         </div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Выберите тему</label>
-        <select value={theme} onChange={e => setTheme(e.target.value as 'light' | 'dark' | 'system')} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+        <select value={theme} onChange={e => handleThemeChange(e.target.value as 'light' | 'dark' | 'system')} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
           <option value="light">Светлая тема</option>
           <option value="dark">Тёмная тема</option>
           <option value="system">Системная тема</option>
