@@ -1,143 +1,151 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import * as bcrypt from 'bcrypt';
+
+const publicUserSelect = {
+  id: true,
+  username: true,
+  fullName: true,
+  roleId: true,
+  role: { select: { id: true, name: true, permissions: true } },
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
-    return this.prisma.user.findMany({ include: { role: true }, orderBy: { createdAt: 'desc' } });
+  findAll() {
+    return this.prisma.user.findMany({
+      select: publicUserSelect,
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async findOne(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id }, include: { role: true } });
-    if (!user) throw new NotFoundException();
+    const user = await this.prisma.user.findUnique({ where: { id }, select: publicUserSelect });
+    if (!user) throw new NotFoundException('Пользователь не найден');
     return user;
   }
 
-  async create(data: any, userId?: string, userName?: string) {
-    const exists = await this.prisma.user.findUnique({ where: { username: data.username } });
+  async create(data: any, actorId?: string, actorName?: string) {
+    const username = typeof data.username === 'string' ? data.username.trim() : '';
+    const fullName = typeof data.fullName === 'string' ? data.fullName.trim() : '';
+    const password = typeof data.password === 'string' ? data.password : '';
+    const roleId = typeof data.roleId === 'string' ? data.roleId : typeof data.role === 'string' ? data.role : data.role?.id;
+
+    if (!/^[a-zA-Z0-9._-]{3,64}$/.test(username)) {
+      throw new BadRequestException('Логин должен содержать 3–64 символа: буквы, цифры, ., _ или -');
+    }
+    if (fullName.length < 2 || fullName.length > 120) throw new BadRequestException('Некорректное ФИО');
+    if (password.length < 12 || password.length > 128) throw new BadRequestException('Пароль должен содержать от 12 до 128 символов');
+    if (!roleId || typeof roleId !== 'string') throw new BadRequestException('Роль не указана');
+
+    const exists = await this.prisma.user.findUnique({ where: { username }, select: { id: true } });
     if (exists) throw new ConflictException('Логин уже занят');
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Извлекаем roleId из объекта role если он передан
-    let roleId = data.roleId || data.role;
-    if (typeof data.role === 'object' && data.role.id) {
-      roleId = data.role.id;
-    }
-    
-    if (!roleId) {
-      throw new ConflictException('Роль не указана');
-    }
-
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await this.prisma.user.create({
-      data: {
-        username: data.username,
-        password: hashedPassword,
-        fullName: data.fullName,
-        role: {
-          connect: { id: roleId }
-        },
-        isActive: data.isActive !== undefined ? data.isActive : true,
-      },
-      include: { role: true },
-    });
-
-    // Логирование
-    if (userId) {
-      await this.prisma.auditLog.create({
-        data: {
-          userId,
-          userName: userName || 'Система',
-          action: 'create_user',
-          field: 'user',
-          newValue: user.username,
-          details: `Создан пользователь ${user.fullName}`,
-        },
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: { username, password: hashedPassword, fullName, roleId, isActive: data.isActive !== false },
+        select: publicUserSelect,
       });
-    }
-
-    return user;
+      if (actorId) {
+        await tx.auditLog.create({
+          data: {
+            userId: actorId, userName: actorName || 'Система', action: 'create_user',
+            field: 'user', newValue: user.username, details: `Создан пользователь ${user.fullName}`,
+          },
+        });
+      }
+      return user;
+    });
   }
 
-  async update(id: string, data: any, userId?: string, userName?: string) {
-    const existing = await this.prisma.user.findUnique({ where: { id }, include: { role: true } });
+  async update(id: string, data: any, actorId?: string, actorName?: string) {
+    const existing = await this.prisma.user.findUnique({ where: { id }, select: publicUserSelect });
     if (!existing) throw new NotFoundException('Пользователь не найден');
 
-    // Подготовка данных для обновления
-    const updateData: any = {
-      username: data.username,
-      fullName: data.fullName,
-      isActive: data.isActive,
-    };
-    
-    // Хэшируем пароль если он передан
-    if (data.password) {
-      updateData.password = await bcrypt.hash(data.password, 10);
+    const updateData: any = {};
+    if (data.username !== undefined) {
+      if (typeof data.username !== 'string' || !/^[a-zA-Z0-9._-]{3,64}$/.test(data.username.trim())) {
+        throw new BadRequestException('Некорректный логин');
+      }
+      updateData.username = data.username.trim();
     }
-    
-    // Извлекаем roleId из объекта role если он передан
-    let roleId = data.roleId || data.role;
-    if (typeof data.role === 'object' && data.role.id) {
-      roleId = data.role.id;
+    if (data.fullName !== undefined) {
+      if (typeof data.fullName !== 'string' || data.fullName.trim().length < 2 || data.fullName.trim().length > 120) {
+        throw new BadRequestException('Некорректное ФИО');
+      }
+      updateData.fullName = data.fullName.trim();
     }
-    
-    if (roleId) {
-      updateData.role = {
-        connect: { id: roleId }
-      };
+    if (data.isActive !== undefined) {
+      if (typeof data.isActive !== 'boolean') throw new BadRequestException('isActive должен быть boolean');
+      updateData.isActive = data.isActive;
     }
-    
-    const user = await this.prisma.user.update({ 
-      where: { id }, 
-      data: updateData,
-      include: { role: true } 
-    });
+    const roleId = typeof data.roleId === 'string' ? data.roleId : typeof data.role === 'string' ? data.role : data.role?.id;
+    if (roleId !== undefined) {
+      if (typeof roleId !== 'string' || !roleId) throw new BadRequestException('Некорректная роль');
+      updateData.roleId = roleId;
+    }
+    if (data.password !== undefined) {
+      if (typeof data.password !== 'string' || data.password.length < 12 || data.password.length > 128) {
+        throw new BadRequestException('Пароль должен содержать от 12 до 128 символов');
+      }
+      updateData.password = await bcrypt.hash(data.password, 12);
+      updateData.tokenVersion = { increment: 1 };
+    }
+    if (Object.keys(updateData).length === 0) throw new BadRequestException('Нет допустимых полей для изменения');
 
-    // Логирование
-    if (userId) {
-      for (const [key, newValue] of Object.entries(data)) {
-        const oldValue = (existing as any)[key];
-        if (String(oldValue) !== String(newValue)) {
-          await this.prisma.auditLog.create({
-            data: {
-              userId,
-              userName: userName || 'Система',
-              action: 'update_user',
-              field: key,
-              oldValue: String(oldValue || ''),
-              newValue: String(newValue || ''),
-              details: `Изменено поле "${key}" пользователя ${user.fullName}`,
-            },
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({ where: { id }, data: updateData, select: publicUserSelect });
+      if (actorId) {
+        const auditFields = ['username', 'fullName', 'isActive', 'roleId'];
+        for (const field of auditFields) {
+          if (data[field] !== undefined && String((existing as any)[field] ?? '') !== String((user as any)[field] ?? '')) {
+            await tx.auditLog.create({
+              data: {
+                userId: actorId, userName: actorName || 'Система', action: 'update_user', field,
+                oldValue: String((existing as any)[field] ?? ''),
+                newValue: String((user as any)[field] ?? ''),
+                details: `Изменено поле "${field}" пользователя ${user.fullName}`,
+              },
+            });
+          }
+        }
+        if (data.password !== undefined) {
+          await tx.auditLog.create({
+            data: { userId: actorId, userName: actorName || 'Система', action: 'reset_password', field: 'password', details: `Сменён пароль пользователя ${user.username}` },
           });
         }
       }
-    }
-
-    return user;
+      return user;
+    });
   }
 
-  async remove(id: string, userId?: string, userName?: string) {
-    const existing = await this.prisma.user.findUnique({ where: { id } });
+  async remove(id: string, actorId?: string, actorName?: string) {
+    const existing = await this.prisma.user.findUnique({ where: { id }, select: { id: true, username: true, fullName: true } });
     if (!existing) throw new NotFoundException('Пользователь не найден');
+    if (actorId === id) throw new BadRequestException('Нельзя удалить собственную учётную запись');
 
-    const user = await this.prisma.user.delete({ where: { id } });
-
-    // Логирование
-    if (userId) {
-      await this.prisma.auditLog.create({
-        data: {
-          userId,
-          userName: userName || 'Система',
-          action: 'delete_user',
-          field: 'user',
-          oldValue: existing.username,
-          details: `Удалён пользователь ${existing.fullName}`,
-        },
+    return this.prisma.$transaction(async (tx) => {
+      // Keep audit foreign keys valid and revoke access immediately.
+      const deleted = await tx.user.update({
+        where: { id },
+        data: { isActive: false, tokenVersion: { increment: 1 } },
+        select: publicUserSelect,
       });
-    }
-
-    return user;
+      if (actorId) {
+        await tx.auditLog.create({
+          data: {
+            userId: actorId, userName: actorName || 'Система', action: 'disable_user',
+            field: 'user', oldValue: existing.username, details: `Отключён пользователь ${existing.fullName}`,
+          },
+        });
+      }
+      return deleted;
+    });
   }
 }
