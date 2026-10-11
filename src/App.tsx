@@ -18,6 +18,11 @@ export default function App() {
   const { currentUser, restoreSession, loadProjects, loadTUs, loadUsers, loadRoles, loadAuditLog, defaultWorkType } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
+  // Применяем тему пользователя ко всему приложению сразу после входа/восстановления сессии.
+  useEffect(() => {
+    document.documentElement.dataset.theme = currentUser?.theme || 'light';
+  }, [currentUser?.theme]);
+
   // Восстанавливаем сессию при загрузке
   useEffect(() => {
     restoreSession();
