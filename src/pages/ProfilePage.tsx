@@ -71,11 +71,10 @@ export default function ProfilePage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Имя пользователя</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Логин</label>
             <input
               type="text"
               value={currentUser.username}
-              disabled
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500"
             />
           </div>
