@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma.service';
@@ -68,10 +68,6 @@ export class AuthService {
       ver: user.tokenVersion,
     };
 
-    await this.prisma.auditLog.create({
-      data: { userId: user.id, userName: user.fullName, action: 'login', field: 'session', details: 'Вход в систему' },
-    });
-
     return {
       access_token: this.jwtService.sign(payload),
       user: {
@@ -80,28 +76,89 @@ export class AuthService {
         fullName: user.fullName,
         role: user.roleId,
         permissions: user.role.permissions,
+        chatId: user.chatId,
+        telegramId: user.telegramId,
+        theme: user.theme,
       },
     };
   }
 
   async logout(userId: string) {
-    await this.prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({ where: { id: userId }, select: { username: true, fullName: true } });
-      if (!user) throw new UnauthorizedException();
-      await tx.user.update({ where: { id: userId }, data: { tokenVersion: { increment: 1 } } });
-      await tx.auditLog.create({
-        data: { userId, userName: user.fullName, action: 'logout', field: 'session', details: 'Выход выполнен; все ранее выданные токены отозваны' },
-      });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { tokenVersion: { increment: 1 } },
     });
     return { message: 'Выход выполнен; сессии отозваны' };
+  }
+
+  async updateMyProfile(userId: string, data: any) {
+    const existing = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true, username: true, fullName: true, chatId: true, telegramId: true, theme: true, isActive: true, role: { select: { name: true, permissions: true } } } });
+    if (!existing || !existing.isActive) throw new UnauthorizedException();
+
+    const updateData: any = {};
+    if (data.username !== undefined) {
+      const username = typeof data.username === 'string' ? data.username.trim() : '';
+      if (!/^[a-zA-Z0-9._-]{3,64}$/.test(username)) throw new BadRequestException('Логин должен содержать 3–64 символа: буквы, цифры, ., _ или -');
+      updateData.username = username;
+    }
+    if (data.fullName !== undefined) {
+      if (typeof data.fullName !== 'string' || data.fullName.trim().length < 2 || data.fullName.trim().length > 120) throw new BadRequestException('Некорректное ФИО');
+      updateData.fullName = data.fullName.trim();
+    }
+    for (const field of ['chatId', 'telegramId'] as const) {
+      if (data[field] !== undefined) {
+        if (data[field] !== null && (typeof data[field] !== 'string' || data[field].length > 128)) throw new BadRequestException(`Некорректное поле ${field}`);
+        updateData[field] = data[field] === '' ? null : data[field];
+      }
+    }
+    if (data.theme !== undefined) {
+      if (!['light', 'dark', 'system'].includes(data.theme)) throw new BadRequestException('Некорректная тема оформления');
+      updateData.theme = data.theme;
+    }
+    if (Object.keys(updateData).length === 0) return { ...existing, role: existing.role.name, permissions: existing.role.permissions };
+
+    try {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: { id: true, username: true, fullName: true, chatId: true, telegramId: true, theme: true, role: { select: { name: true, permissions: true } } },
+      });
+      return { ...user, role: user.role.name, permissions: user.role.permissions };
+    } catch (error: any) {
+      if (error?.code === 'P2002') throw new ConflictException('Этот логин уже используется');
+      throw error;
+    }
+  }
+
+  async changeMyPassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true, password: true, fullName: true, roleId: true, tokenVersion: true, isActive: true, role: { select: { permissions: true } } },
+    });
+    if (!user || !user.isActive || !(await bcrypt.compare(currentPassword, user.password))) {
+      throw new UnauthorizedException('Текущий пароль указан неверно');
+    }
+    if (newPassword.length < 12 || newPassword.length > 128) throw new BadRequestException('Новый пароль должен содержать от 12 до 128 символов');
+
+    const password = await bcrypt.hash(newPassword, 12);
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { password, tokenVersion: { increment: 1 } },
+      select: { id: true, username: true, fullName: true, roleId: true, tokenVersion: true, chatId: true, telegramId: true, theme: true, role: { select: { permissions: true } } },
+    });
+    const access_token = this.jwtService.sign({ sub: updated.id, username: updated.username, role: updated.roleId, ver: updated.tokenVersion });
+    return {
+      access_token,
+      user: { id: updated.id, username: updated.username, fullName: updated.fullName, role: updated.roleId, permissions: updated.role.permissions, chatId: updated.chatId, telegramId: updated.telegramId, theme: updated.theme },
+    };
   }
 
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, username: true, fullName: true, isActive: true, role: { select: { name: true, permissions: true } } },
+      select: { id: true, username: true, fullName: true, isActive: true, chatId: true, telegramId: true, theme: true, role: { select: { name: true, permissions: true } } },
     });
     if (!user || !user.isActive) throw new UnauthorizedException();
-    return { id: user.id, username: user.username, fullName: user.fullName, role: user.role.name, permissions: user.role.permissions };
+    return { id: user.id, username: user.username, fullName: user.fullName, role: user.role.name, permissions: user.role.permissions, chatId: user.chatId, telegramId: user.telegramId, theme: user.theme };
   }
 }
