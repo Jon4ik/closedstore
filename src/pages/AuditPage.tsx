@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { Trash2, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function AuditPage() {
-  const { auditLog, clearAuditLog, hasPermission, projects, users } = useStore();
-  const [clearConfirm, setClearConfirm] = useState(false);
+  const { auditLog, hasPermission, projects, users } = useStore();
   const [filter, setFilter] = useState({ action: '', search: '', module: '' });
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
@@ -89,26 +88,7 @@ export default function AuditPage() {
           <h1 className="text-2xl font-bold text-gray-900">Аудит действий</h1>
           <p className="text-sm text-gray-500 mt-1">История всех действий в системе ({auditLog.length} записей)</p>
         </div>
-        {clearConfirm ? (
-          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-2">
-            <AlertTriangle size={16} className="text-red-600" />
-            <span className="text-sm text-red-700">Очистить весь журнал?</span>
-            <button onClick={async () => { 
-              try {
-                await clearAuditLog(); 
-                setClearConfirm(false);
-              } catch (error) {
-                console.error('Failed to clear audit log:', error);
-                alert('Ошибка при очистке журнала');
-              }
-            }} className="text-xs bg-red-600 text-white px-3 py-1 rounded">Да, очистить</button>
-            <button onClick={() => setClearConfirm(false)} className="text-xs border border-gray-200 px-3 py-1 rounded">Отмена</button>
-          </div>
-        ) : (
-          <button onClick={() => setClearConfirm(true)} className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50">
-            <Trash2 size={16} /> Очистить журнал
-          </button>
-        )}
+        <p className="text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-2">Журнал доступен только для чтения</p>
       </div>
 
       {/* Filters */}
