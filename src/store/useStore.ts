@@ -33,7 +33,7 @@ interface AppState {
 
   // Projects
   loadProjects: () => Promise<void>;
-  addProject: (project: Omit<StoreProject, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => Promise<void>;
+  addProject: (project: Omit<StoreProject, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'isDeleted' | 'createdBy'>) => Promise<void>;
   updateProject: (id: string, updates: Partial<StoreProject>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   restoreProject: (id: string) => Promise<void>;
