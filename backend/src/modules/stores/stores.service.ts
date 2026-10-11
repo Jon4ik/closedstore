@@ -3,7 +3,7 @@ import { PrismaService } from '../../prisma.service';
 
 const DATE_FIELDS = ['closureDate', 'demolitionDate', 'installationDate', 'techOpenDate'] as const;
 const WORK_TYPES = ['Закрытие', 'Реконструкция', 'Открытие'];
-const ALLOWED_STATUS = ['Запланирован', 'В работе', 'Завершено', 'Просрочено', 'Отменено', 'Отмена', 'Закрыт для покупателей', 'Демонтаж', 'Монтаж', 'Техническое открытие', 'Удален'];
+const ALLOWED_STATUS = ['Запланирован', 'В работе', 'Завершено', 'Просрочено', 'Отменено', 'Отмена', 'Закрыт для покупателей', 'Демонтаж', 'Монтаж', 'Техническое открытие', 'Открытие', 'Удален'];
 
 @Injectable()
 export class StoresService {
