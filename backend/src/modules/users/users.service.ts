@@ -84,6 +84,7 @@ export class UsersService {
     if (data.isActive !== undefined) {
       if (typeof data.isActive !== 'boolean') throw new BadRequestException('isActive должен быть boolean');
       updateData.isActive = data.isActive;
+      updateData.tokenVersion = { increment: 1 };
     }
     const roleId = typeof data.roleId === 'string' ? data.roleId : typeof data.role === 'string' ? data.role : data.role?.id;
     if (roleId !== undefined) {
