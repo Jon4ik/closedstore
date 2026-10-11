@@ -18,11 +18,16 @@ export class TUsService {
   async create(data: any, userId?: string, userName?: string) {
     const fullName = typeof data.fullName === 'string' ? data.fullName.trim() : '';
     if (fullName.length < 2 || fullName.length > 120) throw new BadRequestException('Некорректное ФИО ТУ');
+    const phone = typeof data.phone === 'string' ? data.phone.trim() : '';
+    const email = typeof data.email === 'string' ? data.email.trim() : '';
+    if (phone.length > 40 || (phone && !/^[+0-9() .-]{5,40}$/.test(phone))) throw new BadRequestException('Некорректный телефон');
+    if (email.length > 254 || (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))) throw new BadRequestException('Некорректный email');
+    if (data.isActive !== undefined && typeof data.isActive !== 'boolean') throw new BadRequestException('isActive должен быть boolean');
     const clean = {
       fullName,
       position: typeof data.position === 'string' ? data.position.trim().slice(0, 120) : 'Территориальный управляющий',
-      phone: typeof data.phone === 'string' ? data.phone.trim().slice(0, 40) : null,
-      email: typeof data.email === 'string' ? data.email.trim().slice(0, 254) : null,
+      phone: phone || null,
+      email: email || null,
       isActive: data.isActive !== false,
     };
 
