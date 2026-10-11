@@ -89,21 +89,21 @@ CREATE INDEX IF NOT EXISTS "audit_logs_timestamp_idx" ON "audit_logs"("timestamp
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_roleId_fkey') THEN
-    ALTER TABLE "users" ADD CONSTRAINT "users_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    ALTER TABLE "users" ADD CONSTRAINT "users_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE NOT VALID;
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'store_projects_tuId_fkey') THEN
-    ALTER TABLE "store_projects" ADD CONSTRAINT "store_projects_tuId_fkey" FOREIGN KEY ("tuId") REFERENCES "tus"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    ALTER TABLE "store_projects" ADD CONSTRAINT "store_projects_tuId_fkey" FOREIGN KEY ("tuId") REFERENCES "tus"("id") ON DELETE RESTRICT ON UPDATE CASCADE NOT VALID;
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'comments_storeId_fkey') THEN
-    ALTER TABLE "comments" ADD CONSTRAINT "comments_storeId_fkey" FOREIGN KEY ("storeId") REFERENCES "store_projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    ALTER TABLE "comments" ADD CONSTRAINT "comments_storeId_fkey" FOREIGN KEY ("storeId") REFERENCES "store_projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE NOT VALID;
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'comments_userId_fkey') THEN
-    ALTER TABLE "comments" ADD CONSTRAINT "comments_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    ALTER TABLE "comments" ADD CONSTRAINT "comments_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE NOT VALID;
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'audit_logs_storeId_fkey') THEN
-    ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_storeId_fkey" FOREIGN KEY ("storeId") REFERENCES "store_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+    ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_storeId_fkey" FOREIGN KEY ("storeId") REFERENCES "store_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE NOT VALID;
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'audit_logs_userId_fkey') THEN
-    ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE NOT VALID;
   END IF;
 END $$;
