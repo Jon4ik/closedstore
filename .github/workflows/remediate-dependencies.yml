@@ -1,3 +1,4 @@
+# trigger: try dependency remediation
 name: Temporary dependency remediation
 
 on:
