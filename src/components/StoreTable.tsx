@@ -70,6 +70,7 @@ export default function StoreTable() {
             'Город': p.city,
             'Монтаж': formatDate(p.installationDate),
             'Тех. открытие': formatDate(p.techOpenDate),
+            'Номер ТУ / ID': p.tuId,
             'ТУ': getTUName(p.tuId),
             'Статус': calculateProjectStatus(p),
           };
