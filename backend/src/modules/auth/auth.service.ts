@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, TooManyRequestsException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma.service';
@@ -20,7 +20,7 @@ export class AuthService {
       this.failedLogins.delete(key);
       return key;
     }
-    if (current.count >= MAX_FAILURES) throw new TooManyRequestsException('Слишком много неудачных попыток. Повторите через 15 минут.');
+    if (current.count >= MAX_FAILURES) throw new HttpException('Слишком много неудачных попыток. Повторите через 15 минут.', HttpStatus.TOO_MANY_REQUESTS);
     return key;
   }
 
