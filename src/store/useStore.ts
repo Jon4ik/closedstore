@@ -73,7 +73,6 @@ interface AppState {
 
   // Audit
   loadAuditLog: () => Promise<void>;
-  clearAuditLog: () => Promise<void>;
 
   // Import
   importProjects: (file: File) => Promise<void>;
@@ -210,8 +209,9 @@ export const useStore = create<AppState>((set, get) => ({
 
   restoreProject: async (id: string) => {
     try {
-      await apiClient.updateProject(id, { isDeleted: false });
+      await apiClient.restoreProject(id);
       await get().loadProjects();
+      await get().loadAuditLog();
     } catch (error) {
       console.error('Failed to restore project:', error);
       throw error;
@@ -402,16 +402,6 @@ export const useStore = create<AppState>((set, get) => ({
       set({ auditLog: response.data });
     } catch (error) {
       console.error('Failed to load audit log:', error);
-    }
-  },
-
-  clearAuditLog: async () => {
-    try {
-      await apiClient.clearAuditLogs();
-      set({ auditLog: [] });
-    } catch (error) {
-      console.error('Failed to clear audit log:', error);
-      throw error;
     }
   },
 
