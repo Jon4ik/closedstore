@@ -1,6 +1,5 @@
 import { BadRequestException, Controller, Post, UseGuards, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { memoryStorage } from 'multer';
 import { ImportService } from './import.service';
@@ -21,8 +20,7 @@ export class ImportController {
     storage: memoryStorage(),
     limits: { fileSize: MAX_IMPORT_BYTES, files: 1 },
     fileFilter: (_req, file, callback) => {
-      const extension = extname(file.originalname).toLowerCase();
-      if (extension !== '.xlsx') {
+      if (extname(file.originalname).toLowerCase() !== '.xlsx') {
         return callback(new BadRequestException('Разрешены только файлы .xlsx'), false);
       }
       callback(null, true);
