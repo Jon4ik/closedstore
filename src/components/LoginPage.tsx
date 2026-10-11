@@ -40,36 +40,20 @@ export default function LoginPage() {
             )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Логин</label>
-              <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="admin"
+              <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Введите логин"
+                autoComplete="username" required maxLength={64}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" autoFocus />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••"
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Введите пароль"
+                autoComplete="current-password" required maxLength={128}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
             </div>
             <button type="submit" className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
               <LogIn size={16} /> Войти
             </button>
           </form>
-
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-500 text-center mb-3">Тестовые аккаунты:</p>
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs">
-                <span className="text-gray-600">Администратор:</span>
-                <span className="font-mono text-gray-500">admin / admin123</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-gray-600">Менеджер:</span>
-                <span className="font-mono text-gray-500">manager / manager123</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-gray-600">Наблюдатель:</span>
-                <span className="font-mono text-gray-500">viewer / viewer123</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

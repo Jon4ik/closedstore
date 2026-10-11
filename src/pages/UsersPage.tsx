@@ -23,8 +23,8 @@ export default function UsersPage() {
       alert('Укажите пароль');
       return;
     }
-    if (newUser.password.length < 6) {
-      alert('Пароль должен содержать минимум 6 символов');
+    if (newUser.password.length < 12) {
+      alert('Пароль должен содержать минимум 12 символов');
       return;
     }
     if (!newUser.fullName.trim()) {
@@ -115,7 +115,7 @@ export default function UsersPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Пароль *</label>
-              <input type="password" value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+              <input type="password" value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} minLength={12} maxLength={128} autoComplete="new-password" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Роль</label>

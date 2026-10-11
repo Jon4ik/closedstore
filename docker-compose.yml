@@ -1,28 +1,44 @@
 services:
-  # ============================================
-  # Backend API (NestJS)
-  # ============================================
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: builder
+    container_name: reconstruction-migrate
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      SEED_DEMO_USERS: ${SEED_DEMO_USERS:-false}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      SEED_MANAGER_PASSWORD: ${SEED_MANAGER_PASSWORD:-}
+      SEED_VIEWER_PASSWORD: ${SEED_VIEWER_PASSWORD:-}
+    command: sh -c "npx prisma migrate deploy && npm run prisma:seed"
+    networks:
+      - app-network
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: production
     container_name: reconstruction-api
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
       NODE_ENV: production
       PORT: 4000
-      DOMAIN: ${DOMAIN:-localhost}
-    ports:
-      - "4000:4000"
+      DOMAIN: ${DOMAIN:-http://localhost:5001}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "4000"
     networks:
       - app-network
 
-  # ============================================
-  # Frontend (React + Nginx)
-  # ============================================
   frontend:
     build:
       context: .

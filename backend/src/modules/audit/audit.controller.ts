@@ -1,18 +1,23 @@
 import { Controller, Get, Delete, Query, UseGuards } from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermissions } from '../auth/require-permissions.decorator';
+import { AuditQueryDto } from './dto/audit-query.dto';
 
 @Controller('audit')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class AuditController {
   constructor(private auditService: AuditService) {}
 
   @Get()
-  findAll(@Query() query: any) {
+  @RequirePermissions('view_audit')
+  findAll(@Query() query: AuditQueryDto) {
     return this.auditService.findAll(query);
   }
 
   @Delete('clear')
+  @RequirePermissions('clear_audit')
   clearAll() {
     return this.auditService.clearAll();
   }

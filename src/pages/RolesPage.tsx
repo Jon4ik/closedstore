@@ -10,7 +10,7 @@ export default function RolesPage() {
   const [editData, setEditData] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  if (!hasPermission('manage_roles')) {
+  if (!hasPermission('manage_roles') || !hasPermission('settings')) {
     return <div className="text-center py-12 text-gray-500">Нет доступа к этой странице</div>;
   }
 
@@ -96,7 +96,6 @@ export default function RolesPage() {
       key: 'audit',
       permissions: [
         { key: 'view_audit', label: 'Просмотр журнала' },
-        { key: 'clear_audit', label: 'Очистка журнала' },
       ]
     },
     {

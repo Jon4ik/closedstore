@@ -10,7 +10,7 @@ export const seedRoles: Role[] = [
     id: 'role-admin', 
     name: 'Администратор', 
     description: 'Полный доступ ко всем функциям системы',
-    permissions: ['view', 'edit', 'view_closures', 'create_closures', 'edit_closures', 'delete_closures', 'view_openings', 'create_openings', 'edit_openings', 'delete_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'delete_comments', 'view_users', 'manage_users', 'view_roles', 'manage_roles', 'view_tus', 'manage_tus', 'view_audit', 'clear_audit', 'settings'],
+    permissions: ['view', 'edit', 'view_closures', 'create_closures', 'edit_closures', 'delete_closures', 'view_openings', 'create_openings', 'edit_openings', 'delete_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'delete_comments', 'view_users', 'manage_users', 'view_roles', 'manage_roles', 'view_tus', 'manage_tus', 'view_audit', 'settings'],
     isSystem: true 
   },
   { 
@@ -30,8 +30,4 @@ export const seedRoles: Role[] = [
 ];
 
 // Системные пользователи (создаются при инициализации БД)
-export const seedUsers: SystemUser[] = [
-  { id: 'user-1', username: 'admin', password: 'admin123', fullName: 'Администратор Системы', role: 'role-admin', isActive: true, createdAt: new Date().toISOString() },
-  { id: 'user-2', username: 'manager', password: 'manager123', fullName: 'Иванов И.И.', role: 'role-manager', isActive: true, createdAt: new Date().toISOString() },
-  { id: 'user-3', username: 'viewer', password: 'viewer123', fullName: 'Петров П.П.', role: 'role-viewer', isActive: true, createdAt: new Date().toISOString() },
-];
+export const seedUsers: SystemUser[] = []; // Authentication is exclusively handled by the backend API.

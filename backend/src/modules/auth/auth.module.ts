@@ -5,13 +5,14 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { PrismaService } from '../../prisma.service';
+import { getJwtSecret } from '../../config/security';
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'default-secret',
-      signOptions: { expiresIn: '7d' },
+      secret: getJwtSecret(),
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '15m' },
     }),
   ],
   controllers: [AuthController],

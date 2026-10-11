@@ -4,109 +4,99 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('Seeding roles and TUs...');
+  const adminPermissions = ['view', 'edit', 'view_closures', 'create_closures', 'edit_closures', 'delete_closures', 'view_openings', 'create_openings', 'edit_openings', 'delete_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'delete_comments', 'view_users', 'manage_users', 'view_roles', 'manage_roles', 'view_tus', 'manage_tus', 'view_audit', 'settings'];
+  const managerPermissions = ['view', 'edit', 'view_closures', 'create_closures', 'edit_closures', 'view_openings', 'create_openings', 'edit_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'view_tus'];
+  const viewerPermissions = ['view', 'view_closures', 'view_openings', 'view_calendar', 'view_dashboard', 'view_comments', 'view_tus'];
 
-  // Create roles
   const adminRole = await prisma.role.upsert({
     where: { name: 'Администратор' },
-    update: {},
-    create: {
-      name: 'Администратор',
-      description: 'Полный доступ ко всем функциям системы',
-      permissions: ['view', 'edit', 'view_closures', 'create_closures', 'edit_closures', 'delete_closures', 'view_openings', 'create_openings', 'edit_openings', 'delete_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'delete_comments', 'view_users', 'manage_users', 'view_roles', 'manage_roles', 'view_tus', 'manage_tus', 'view_audit', 'clear_audit', 'settings'],
-      isSystem: true,
-    },
+    update: { permissions: adminPermissions },
+    create: { name: 'Администратор', description: 'Полный доступ ко всем функциям системы', permissions: adminPermissions, isSystem: true },
   });
-
-  const managerRole = await prisma.role.upsert({
+  await prisma.role.upsert({
     where: { name: 'Менеджер' },
-    update: {},
-    create: {
-      name: 'Менеджер',
-      description: 'Управление объектами и импорт/экспорт',
-      permissions: ['view', 'edit', 'view_closures', 'create_closures', 'edit_closures', 'view_openings', 'create_openings', 'edit_openings', 'view_calendar', 'view_dashboard', 'import', 'export', 'view_comments', 'add_comments', 'view_tus'],
-      isSystem: true,
-    },
+    update: { permissions: managerPermissions },
+    create: { name: 'Менеджер', description: 'Управление объектами и импорт/экспорт', permissions: managerPermissions, isSystem: true },
   });
-
-  const viewerRole = await prisma.role.upsert({
+  await prisma.role.upsert({
     where: { name: 'Наблюдатель' },
-    update: {},
-    create: {
-      name: 'Наблюдатель',
-      description: 'Только просмотр данных',
-      permissions: ['view', 'view_closures', 'view_openings', 'view_calendar', 'view_dashboard', 'view_comments', 'view_tus'],
-      isSystem: true,
-    },
+    update: { permissions: viewerPermissions },
+    create: { name: 'Наблюдатель', description: 'Только просмотр данных', permissions: viewerPermissions, isSystem: true },
   });
 
-  console.log('✅ Roles created');
+  // Demo accounts are opt-in only. Never create predictable production credentials.
+  if (process.env.SEED_DEMO_USERS === 'true') {
+    const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+    const managerPassword = process.env.SEED_MANAGER_PASSWORD;
+    const viewerPassword = process.env.SEED_VIEWER_PASSWORD;
+    if ([adminPassword, managerPassword, viewerPassword].some((value) => !value || value.length < 12)) {
+      throw new Error('Для SEED_DEMO_USERS=true задайте все SEED_*_PASSWORD длиной минимум 12 символов');
+    }
+    for (const account of [
+      { username: 'admin', fullName: 'Администратор Системы', roleId: adminRole.id, password: adminPassword! },
+      { username: 'manager', fullName: 'Менеджер', roleId: (await prisma.role.findUniqueOrThrow({ where: { name: 'Менеджер' } })).id, password: managerPassword! },
+      { username: 'viewer', fullName: 'Наблюдатель', roleId: (await prisma.role.findUniqueOrThrow({ where: { name: 'Наблюдатель' } })).id, password: viewerPassword! },
+    ]) {
+      const hash = await bcrypt.hash(account.password, 12);
+      await prisma.user.upsert({
+        where: { username: account.username },
+        update: { password: hash, tokenVersion: { increment: 1 }, isActive: true, fullName: account.fullName, roleId: account.roleId },
+        create: { username: account.username, password: hash, fullName: account.fullName, roleId: account.roleId },
+      });
+    }
+    console.log('Demo accounts seeded with explicitly supplied passwords.');
+  }
 
-  // Create users
-  const adminPassword = await bcrypt.hash('admin123', 10);
-  const managerPassword = await bcrypt.hash('manager123', 10);
-  const viewerPassword = await bcrypt.hash('viewer123', 10);
+  else {
+    // Disable legacy demo accounts only when their password still matches the published default.
+    // This preserves real accounts that have already rotated their passwords.
+    for (const [username, defaultPassword] of [
+      ['admin', 'admin123'],
+      ['manager', 'manager123'],
+      ['viewer', 'viewer123'],
+    ]) {
+      const existing = await prisma.user.findUnique({ where: { username }, select: { id: true, password: true, isActive: true } });
+      if (existing && existing.isActive && await bcrypt.compare(defaultPassword, existing.password)) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: { isActive: false, tokenVersion: { increment: 1 } },
+        });
+        console.warn(`Disabled legacy account "${username}" because it still used a published default password.`);
+      }
+    }
+  }
 
-  await prisma.user.upsert({
-    where: { username: 'admin' },
-    update: {},
-    create: {
-      username: 'admin',
-      password: adminPassword,
-      fullName: 'Администратор Системы',
-      roleId: adminRole.id,
-    },
-  });
+  // One-time production bootstrap: supply a strong password, then remove the variable.
+  const bootstrapAdminPassword = process.env.BOOTSTRAP_ADMIN_PASSWORD;
+  if (bootstrapAdminPassword !== undefined && bootstrapAdminPassword !== '') {
+    if (bootstrapAdminPassword.length < 12 || bootstrapAdminPassword.length > 128) {
+      throw new Error('BOOTSTRAP_ADMIN_PASSWORD должен содержать 12–128 символов');
+    }
+    const hash = await bcrypt.hash(bootstrapAdminPassword, 12);
+    await prisma.user.upsert({
+      where: { username: 'admin' },
+      update: { password: hash, tokenVersion: { increment: 1 }, isActive: true, roleId: adminRole.id },
+      create: { username: 'admin', password: hash, fullName: 'Администратор Системы', roleId: adminRole.id },
+    });
+    console.log('Administrator account bootstrapped with a supplied password.');
+  }
 
-  await prisma.user.upsert({
-    where: { username: 'manager' },
-    update: {},
-    create: {
-      username: 'manager',
-      password: managerPassword,
-      fullName: 'Иванов И.И.',
-      roleId: managerRole.id,
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { username: 'viewer' },
-    update: {},
-    create: {
-      username: 'viewer',
-      password: viewerPassword,
-      fullName: 'Петров П.П.',
-      roleId: viewerRole.id,
-    },
-  });
-
-  console.log('✅ Users created');
-
-  // Create TUs
   const tus = [
     { fullName: 'Зотов Денис', position: 'Территориальный управляющий', phone: '+7 (999) 123-45-67', email: 'zotov@company.ru' },
     { fullName: 'Дрямова Валентина', position: 'Территориальный управляющий', phone: '+7 (999) 234-56-78', email: 'dryamova@company.ru' },
     { fullName: 'Беляева Анна', position: 'Территориальный управляющий', phone: '+7 (999) 345-67-89', email: 'belyaeva@company.ru' },
   ];
-
   for (const tu of tus) {
-    await prisma.tU.upsert({
-      where: { id: `tu-${tu.fullName.replace(/\s/g, '-').toLowerCase()}` },
-      update: {},
-      create: {
-        id: `tu-${tu.fullName.replace(/\s/g, '-').toLowerCase()}`,
-        ...tu,
-      },
-    });
+    const id = `tu-${tu.fullName.replace(/\s/g, '-').toLowerCase()}`;
+    await prisma.tU.upsert({ where: { id }, update: {}, create: { id, ...tu } });
   }
-
-  console.log('✅ TUs created');
-  console.log('🎉 Seed completed!');
+  console.log('Seed completed.');
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
+  .catch((error) => {
+    console.error(error);
     process.exit(1);
   })
   .finally(async () => {

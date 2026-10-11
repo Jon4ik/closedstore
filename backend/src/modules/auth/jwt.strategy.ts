@@ -1,23 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { PrismaService } from '../../prisma.service';
+import { getJwtSecret } from '../../config/security';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'default-secret',
+      secretOrKey: getJwtSecret(),
     });
   }
 
   async validate(payload: any) {
+    if (!payload?.sub || !Number.isInteger(payload.ver)) throw new UnauthorizedException('Недействительная сессия');
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, username: true, isActive: true, tokenVersion: true, roleId: true, role: { select: { permissions: true } } },
+    });
+    if (!user || !user.isActive || user.tokenVersion !== payload.ver) {
+      throw new UnauthorizedException('Сессия отозвана или учётная запись отключена');
+    }
     return {
-      sub: payload.sub,
-      username: payload.username,
-      role: payload.role,
-      permissions: payload.permissions,
+      sub: user.id,
+      username: user.username,
+      role: user.roleId,
+      permissions: user.role.permissions,
     };
   }
 }

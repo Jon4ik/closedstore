@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { X, AlertCircle, Palette } from 'lucide-react';
 import { parseDateInput } from '../utils/statusCalculator';
 import { validateDate } from '../utils/validation';
 
 export default function AddStoreModal() {
-  const { isAddModalOpen, closeAddModal, addProject, tus, projects, currentUser, defaultWorkType } = useStore();
+  const { isAddModalOpen, closeAddModal, addProject, tus, projects, defaultWorkType } = useStore();
   const [form, setForm] = useState({
     storeNumber: '', address: '', city: '', workType: defaultWorkType,
     closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '',
     tuId: tus[0]?.id || '', comment: '', rowColor: '',
   });
+
+  useEffect(() => {
+    if (isAddModalOpen) setForm(current => ({ ...current, workType: defaultWorkType }));
+  }, [isAddModalOpen, defaultWorkType]);
   const [errors, setErrors] = useState<string[]>([]);
 
   if (!isAddModalOpen) return null;
@@ -42,7 +46,7 @@ export default function AddStoreModal() {
         installationDate: form.installationDate ? parseDateInput(form.installationDate) : null,
         techOpenDate: form.techOpenDate ? parseDateInput(form.techOpenDate) : null,
         tuId: form.tuId, rowColor: form.rowColor, comment: form.comment,
-        isDeleted: false, manualStatus: null, createdBy: currentUser?.id || 'system',
+        manualStatus: null,
       });
       setForm({ storeNumber: '', address: '', city: '', workType: 'Закрытие' as 'Закрытие' | 'Реконструкция' | 'Открытие', closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '', tuId: tus[0]?.id || '', comment: '', rowColor: '' });
       closeAddModal();

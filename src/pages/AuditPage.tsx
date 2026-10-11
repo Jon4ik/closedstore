@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { Trash2, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function AuditPage() {
-  const { auditLog, clearAuditLog, hasPermission, projects, users } = useStore();
-  const [clearConfirm, setClearConfirm] = useState(false);
+  const { auditLog, hasPermission, projects, users } = useStore();
   const [filter, setFilter] = useState({ action: '', search: '', module: '' });
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
@@ -22,12 +21,26 @@ export default function AuditPage() {
     setExpandedRows(newExpanded);
   };
 
+  // Определение подсистемы по действию
+  const getModule = (action: string): string => {
+    if (action.includes('user')) return 'Пользователи';
+    if (action.includes('tu')) return 'Справочник ТУ';
+    if (action.includes('role')) return 'Роли';
+    if (action.includes('comment')) return 'Комментарии';
+    if (action === 'login' || action === 'logout') return 'Авторизация';
+    if (action === 'import') return 'Импорт';
+    if (action === 'create' || action === 'update' || action === 'delete') return 'Объекты';
+    return 'Система';
+  };
+
   const filteredLog = auditLog.filter(log => {
+    // Legacy user/profile audit events are intentionally hidden.
+    if (log.action.toLowerCase().includes('user') || log.action === 'reset_password') return false;
     if (filter.action && log.action !== filter.action) return false;
     if (filter.module && getModule(log.action) !== filter.module) return false;
     if (filter.search) {
       const search = filter.search.toLowerCase();
-      return log.details.toLowerCase().includes(search) || log.userName.toLowerCase().includes(search);
+      return String(log.details || '').toLowerCase().includes(search) || String(log.userName || '').toLowerCase().includes(search);
     }
     return true;
   }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -52,20 +65,7 @@ export default function AuditPage() {
     delete_role: 'bg-red-100 text-red-700', add_comment: 'bg-indigo-100 text-indigo-700',
   };
 
-  // Определение подсистемы по действию
-  const getModule = (action: string): string => {
-    if (action.includes('user')) return 'Пользователи';
-    if (action.includes('tu')) return 'Справочник ТУ';
-    if (action.includes('role')) return 'Роли';
-    if (action.includes('comment')) return 'Комментарии';
-    if (action === 'login' || action === 'logout') return 'Авторизация';
-    if (action === 'import') return 'Импорт';
-    if (action === 'create' || action === 'update' || action === 'delete') return 'Объекты';
-    return 'Система';
-  };
-
   const moduleColors: Record<string, string> = {
-    'Пользователи': 'bg-blue-100 text-blue-700',
     'Справочник ТУ': 'bg-green-100 text-green-700',
     'Роли': 'bg-purple-100 text-purple-700',
     'Комментарии': 'bg-indigo-100 text-indigo-700',
@@ -75,7 +75,7 @@ export default function AuditPage() {
     'Система': 'bg-gray-100 text-gray-700',
   };
 
-  const uniqueActions = [...new Set(auditLog.map(l => l.action))];
+  const uniqueActions = [...new Set(auditLog.map(l => l.action).filter(action => !action.toLowerCase().includes('user') && action !== 'reset_password'))];
 
   const getUserName = (userId: string): string => {
     const user = users.find(u => u.id === userId);
@@ -89,26 +89,7 @@ export default function AuditPage() {
           <h1 className="text-2xl font-bold text-gray-900">Аудит действий</h1>
           <p className="text-sm text-gray-500 mt-1">История всех действий в системе ({auditLog.length} записей)</p>
         </div>
-        {clearConfirm ? (
-          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-2">
-            <AlertTriangle size={16} className="text-red-600" />
-            <span className="text-sm text-red-700">Очистить весь журнал?</span>
-            <button onClick={async () => { 
-              try {
-                await clearAuditLog(); 
-                setClearConfirm(false);
-              } catch (error) {
-                console.error('Failed to clear audit log:', error);
-                alert('Ошибка при очистке журнала');
-              }
-            }} className="text-xs bg-red-600 text-white px-3 py-1 rounded">Да, очистить</button>
-            <button onClick={() => setClearConfirm(false)} className="text-xs border border-gray-200 px-3 py-1 rounded">Отмена</button>
-          </div>
-        ) : (
-          <button onClick={() => setClearConfirm(true)} className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50">
-            <Trash2 size={16} /> Очистить журнал
-          </button>
-        )}
+        <p className="text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-2">Журнал доступен только для чтения</p>
       </div>
 
       {/* Filters */}
@@ -118,7 +99,6 @@ export default function AuditPage() {
             <label className="block text-xs font-medium text-gray-500 mb-1">Подсистема</label>
             <select value={filter.module} onChange={e => setFilter({ ...filter, module: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
               <option value="">Все подсистемы</option>
-              <option value="Пользователи">Пользователи</option>
               <option value="Справочник ТУ">Справочник ТУ</option>
               <option value="Роли">Роли</option>
               <option value="Комментарии">Комментарии</option>

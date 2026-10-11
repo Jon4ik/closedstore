@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
 import { PrismaService } from './prisma.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { StoresModule } from './modules/stores/stores.module';
@@ -13,11 +11,6 @@ import { HealthController } from './health.controller';
 
 @Module({
   imports: [
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'default-secret-change-me',
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
-    }),
     AuthModule,
     StoresModule,
     TUsModule,

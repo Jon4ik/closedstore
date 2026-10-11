@@ -7,7 +7,11 @@ export const formatDate = (dateStr: string | null | undefined): string => {
     return dateStr;
   }
   
-  // Если ISO формат
+  // Дата из БД должна форматироваться как календарная дата, без сдвига часового пояса.
+  const isoDate = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoDate) return `${isoDate[3]}.${isoDate[2]}.${isoDate[1]}`;
+
+  // Если ISO формат с другим представлением даты
   try {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return '';
