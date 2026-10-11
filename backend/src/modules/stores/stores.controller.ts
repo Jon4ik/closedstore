@@ -3,6 +3,7 @@ import { StoresService } from './stores.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
+import { AddCommentDto, CreateStoreDto, StoreQueryDto, UpdateStoreDto } from './dto/store.dto';
 
 @Controller('stores')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -11,7 +12,7 @@ export class StoresController {
 
   @Get()
   @RequirePermissions('view')
-  findAll(@Query() query: any) {
+  findAll(@Query() query: StoreQueryDto) {
     return this.storesService.findAll(query);
   }
 
@@ -29,13 +30,13 @@ export class StoresController {
 
   @Post()
   @RequirePermissions('edit')
-  create(@Body() body: any, @Request() req) {
+  create(@Body() body: CreateStoreDto, @Request() req) {
     return this.storesService.create(body, req.user.sub, req.user.username);
   }
 
   @Put(':id')
   @RequirePermissions('edit')
-  update(@Param('id') id: string, @Body() body: any, @Request() req) {
+  update(@Param('id') id: string, @Body() body: UpdateStoreDto, @Request() req) {
     return this.storesService.update(id, body, req.user.sub, req.user.username);
   }
 
@@ -59,7 +60,7 @@ export class StoresController {
 
   @Post(':id/comments')
   @RequirePermissions('add_comments')
-  addComment(@Param('id') id: string, @Body() body: { text: string }, @Request() req) {
+  addComment(@Param('id') id: string, @Body() body: AddCommentDto, @Request() req) {
     return this.storesService.addComment(id, req.user.sub, req.user.username, body.text);
   }
 
