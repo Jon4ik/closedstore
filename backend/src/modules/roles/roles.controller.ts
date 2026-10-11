@@ -16,19 +16,19 @@ export class RolesController {
   }
 
   @Post()
-  @RequirePermissions('manage_roles')
+  @RequirePermissions('manage_roles', 'settings')
   create(@Body() body: any, @Request() req) {
     return this.rolesService.create(body, req.user.sub, req.user.username);
   }
 
   @Put(':id')
-  @RequirePermissions('manage_roles')
+  @RequirePermissions('manage_roles', 'settings')
   update(@Param('id') id: string, @Body() body: any, @Request() req) {
     return this.rolesService.update(id, body, req.user.sub, req.user.username);
   }
 
   @Delete(':id')
-  @RequirePermissions('manage_roles')
+  @RequirePermissions('manage_roles', 'settings')
   remove(@Param('id') id: string, @Request() req) {
     return this.rolesService.remove(id, req.user.sub, req.user.username);
   }
