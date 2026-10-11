@@ -68,8 +68,8 @@ export default function StoreTable() {
             '№ магазина': p.storeNumber,
             'Адрес': p.address,
             'Город': p.city,
-            'Монтаж': p.installationDate || '',
-            'Тех. открытие': p.techOpenDate || '',
+            'Монтаж': formatDate(p.installationDate),
+            'Тех. открытие': formatDate(p.techOpenDate),
             'ТУ': getTUName(p.tuId),
             'Статус': calculateProjectStatus(p),
           };
