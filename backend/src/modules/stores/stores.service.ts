@@ -110,11 +110,20 @@ export class StoresService {
     const tu = await this.prisma.tU.findFirst({ where: { id: data.tuId, isActive: true }, select: { id: true } });
     if (!tu) throw new BadRequestException('ТУ не найден или отключён');
 
+    if (data.status !== undefined && (typeof data.status !== 'string' || !ALLOWED_STATUS.includes(data.status))) {
+      throw new BadRequestException('Некорректный статус');
+    }
+    if (data.rowColor !== undefined && (typeof data.rowColor !== 'string' || data.rowColor.length > 32)) {
+      throw new BadRequestException('Некорректный цвет строки');
+    }
+    if (data.comment !== undefined && (typeof data.comment !== 'string' || data.comment.length > 5000)) {
+      throw new BadRequestException('Комментарий слишком длинный');
+    }
     const clean: any = {
       storeNumber, address, city, workType: data.workType, tuId: tu.id, createdBy: userId,
       rowColor: typeof data.rowColor === 'string' ? data.rowColor.slice(0, 32) : '',
       comment: typeof data.comment === 'string' ? data.comment.slice(0, 5000) : '',
-      status: typeof data.status === 'string' && ALLOWED_STATUS.includes(data.status) ? data.status : 'Запланирован',
+      status: typeof data.status === 'string' ? data.status : 'Запланирован',
       manualStatus: typeof data.manualStatus === 'string' ? data.manualStatus.slice(0, 80) : null,
     };
     for (const field of DATE_FIELDS) clean[field] = this.convertDate(data[field]);
