@@ -92,7 +92,7 @@ export class AuthService {
   }
 
   async updateMyProfile(userId: string, data: any) {
-    const existing = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true, username: true, fullName: true, chatId: true, telegramId: true, theme: true, isActive: true, role: { select: { name: true, permissions: true } } } });
+    const existing = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true, username: true, fullName: true, chatId: true, telegramId: true, theme: true, isActive: true, role: { select: { id: true, name: true, permissions: true } } } });
     if (!existing || !existing.isActive) throw new UnauthorizedException();
 
     const updateData: any = {};
@@ -115,7 +115,7 @@ export class AuthService {
       if (!['light', 'dark', 'system'].includes(data.theme)) throw new BadRequestException('Некорректная тема оформления');
       updateData.theme = data.theme;
     }
-    if (Object.keys(updateData).length === 0) return { ...existing, role: existing.role.name, permissions: existing.role.permissions };
+    if (Object.keys(updateData).length === 0) return { ...existing, role: existing.role.id, permissions: existing.role.permissions };
 
     try {
       const user = await this.prisma.user.update({
@@ -123,7 +123,7 @@ export class AuthService {
         data: updateData,
         select: { id: true, username: true, fullName: true, chatId: true, telegramId: true, theme: true, role: { select: { name: true, permissions: true } } },
       });
-      return { ...user, role: user.role.name, permissions: user.role.permissions };
+      return { ...user, role: user.role.id, permissions: user.role.permissions };
     } catch (error: any) {
       if (error?.code === 'P2002') throw new ConflictException('Этот логин уже используется');
       throw error;
@@ -159,6 +159,6 @@ export class AuthService {
       select: { id: true, username: true, fullName: true, isActive: true, chatId: true, telegramId: true, theme: true, role: { select: { name: true, permissions: true } } },
     });
     if (!user || !user.isActive) throw new UnauthorizedException();
-    return { id: user.id, username: user.username, fullName: user.fullName, role: user.role.name, permissions: user.role.permissions, chatId: user.chatId, telegramId: user.telegramId, theme: user.theme };
+    return { id: user.id, username: user.username, fullName: user.fullName, role: user.role.id, permissions: user.role.permissions, chatId: user.chatId, telegramId: user.telegramId, theme: user.theme };
   }
 }
