@@ -3,6 +3,7 @@ import { TUsService } from './tus.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
+import { CreateTUDto, UpdateTUDto } from './dto/tu.dto';
 
 @Controller('tus')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -23,13 +24,13 @@ export class TUsController {
 
   @Post()
   @RequirePermissions('manage_tus')
-  create(@Body() body: any, @Request() req) {
+  create(@Body() body: CreateTUDto, @Request() req) {
     return this.tusService.create(body, req.user.sub, req.user.username);
   }
 
   @Put(':id')
   @RequirePermissions('manage_tus')
-  update(@Param('id') id: string, @Body() body: any, @Request() req) {
+  update(@Param('id') id: string, @Body() body: UpdateTUDto, @Request() req) {
     return this.tusService.update(id, body, req.user.sub, req.user.username);
   }
 
