@@ -121,7 +121,7 @@ export class AuthService {
       const user = await this.prisma.user.update({
         where: { id: userId },
         data: updateData,
-        select: { id: true, username: true, fullName: true, chatId: true, telegramId: true, theme: true, role: { select: { name: true, permissions: true } } },
+        select: { id: true, username: true, fullName: true, chatId: true, telegramId: true, theme: true, role: { select: { id: true, name: true, permissions: true } } },
       });
       return { ...user, role: user.role.id, permissions: user.role.permissions };
     } catch (error: any) {
