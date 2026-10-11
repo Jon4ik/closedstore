@@ -4,7 +4,7 @@
 
 - Set `JWT_SECRET` to a cryptographically random value of at least 32 characters. The API intentionally refuses to start without it.
 - Keep `JWT_EXPIRES_IN` at the default `15m` unless there is a reviewed reason to change it.
-- Keep `SEED_DEMO_USERS=false` in production. Demo users can only be seeded when all three `SEED_*_PASSWORD` variables are explicitly supplied and each password is at least 12 characters.
+- Keep `SEED_DEMO_USERS=false` in production. For initial setup, set `BOOTSTRAP_ADMIN_PASSWORD` to a unique password of 12–128 characters, run the migration service once, then remove the variable and run the migration service again. Demo users are opt-in only and require three explicit strong passwords.
 - `DOMAIN` must be the full allowed browser origin, including scheme, e.g. `https://reconstruction.example.com`.
 
 ## Deploy
