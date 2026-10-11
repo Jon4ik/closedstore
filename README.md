@@ -26,8 +26,9 @@ DB_PORT=5432
 DB_NAME=store_reconstruction
 DB_USER=postgres
 DB_PASSWORD=your_secure_password
-JWT_SECRET=your_jwt_secret_at_least_32_characters
-DOMAIN=localhost
+JWT_SECRET=<сгенерируйте случайный секрет не короче 32 символов>
+JWT_EXPIRES_IN=15m
+DOMAIN=https://your-domain.example
 ```
 
 ### 2. Создание базы данных
@@ -39,24 +40,27 @@ psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
 ### 3. Запуск
 
 ```bash
-docker compose up -d
+docker compose up --build -d
 ```
 
 ### 4. Доступ
 
 - **Frontend**: http://your-server-ip:5001
-- **Backend API**: http://your-server-ip:4000/api
-- **Swagger**: http://your-server-ip:4000/api/docs
+- **Backend API**: доступен через reverse proxy по адресу http://your-server-ip:5001/api
+- **Swagger**: http://your-server-ip:5001/api/docs
+- Порт 4000 backend не публикуется на хост
 
-### 5. Вход
+### 5. Первичная настройка администратора
 
-| Логин | Пароль | Роль |
-|-------|--------|------|
-| admin | admin123 | Администратор |
-| manager | manager123 | Менеджер |
-| viewer | viewer123 | Наблюдатель |
+Система **не содержит стандартных логинов и паролей**. Для первого запуска:
 
-⚠️ **Сразу измените пароль администратора!**
+1. Сгенерируйте секрет: `openssl rand -base64 48` и задайте полученное значение в `JWT_SECRET`.
+2. Временно задайте в `.env` `BOOTSTRAP_ADMIN_PASSWORD` со случайным паролем длиной не менее 12 символов.
+3. Запустите `docker compose up --build -d`. Сервис `migrate` применит миграции и создаст администратора.
+4. Удалите `BOOTSTRAP_ADMIN_PASSWORD` из `.env` и выполните `docker compose run --rm migrate`, чтобы больше не хранить пароль первичной настройки в конфигурации.
+5. Для дальнейших пользователей используйте раздел управления пользователями.
+
+Не публикуйте `.env` и не используйте тестовые пароли в production.
 
 ## 📊 Типы работ
 
