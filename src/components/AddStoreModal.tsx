@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { X, AlertCircle, Palette } from 'lucide-react';
 import { parseDateInput } from '../utils/statusCalculator';
@@ -11,6 +11,10 @@ export default function AddStoreModal() {
     closureDate: '', demolitionDate: '', installationDate: '', techOpenDate: '',
     tuId: tus[0]?.id || '', comment: '', rowColor: '',
   });
+
+  useEffect(() => {
+    if (isAddModalOpen) setForm(current => ({ ...current, workType: defaultWorkType }));
+  }, [isAddModalOpen, defaultWorkType]);
   const [errors, setErrors] = useState<string[]>([]);
 
   if (!isAddModalOpen) return null;
