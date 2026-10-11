@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { apiClient } from '../api/client';
-import { User, Lock, MessageSquare, Palette, Save, Send } from 'lucide-react';
+import { User, Lock, MessageSquare, Palette, Save } from 'lucide-react';
 import { SystemUser } from '../types';
 
 export default function ProfilePage() {
