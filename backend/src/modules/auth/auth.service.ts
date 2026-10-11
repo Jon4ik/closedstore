@@ -156,7 +156,7 @@ export class AuthService {
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, username: true, fullName: true, isActive: true, chatId: true, telegramId: true, theme: true, role: { select: { name: true, permissions: true } } },
+      select: { id: true, username: true, fullName: true, isActive: true, chatId: true, telegramId: true, theme: true, role: { select: { id: true, name: true, permissions: true } } },
     });
     if (!user || !user.isActive) throw new UnauthorizedException();
     return { id: user.id, username: user.username, fullName: user.fullName, role: user.role.id, permissions: user.role.permissions, chatId: user.chatId, telegramId: user.telegramId, theme: user.theme };
