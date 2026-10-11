@@ -21,6 +21,18 @@ export default function AuditPage() {
     setExpandedRows(newExpanded);
   };
 
+  // Определение подсистемы по действию
+  const getModule = (action: string): string => {
+    if (action.includes('user')) return 'Пользователи';
+    if (action.includes('tu')) return 'Справочник ТУ';
+    if (action.includes('role')) return 'Роли';
+    if (action.includes('comment')) return 'Комментарии';
+    if (action === 'login' || action === 'logout') return 'Авторизация';
+    if (action === 'import') return 'Импорт';
+    if (action === 'create' || action === 'update' || action === 'delete') return 'Объекты';
+    return 'Система';
+  };
+
   const filteredLog = auditLog.filter(log => {
     // Legacy user/profile audit events are intentionally hidden.
     if (log.action.toLowerCase().includes('user') || log.action === 'reset_password') return false;
@@ -51,18 +63,6 @@ export default function AuditPage() {
     update_tu: 'bg-yellow-100 text-yellow-700', delete_tu: 'bg-red-100 text-red-700',
     create_role: 'bg-blue-100 text-blue-700', update_role: 'bg-yellow-100 text-yellow-700',
     delete_role: 'bg-red-100 text-red-700', add_comment: 'bg-indigo-100 text-indigo-700',
-  };
-
-  // Определение подсистемы по действию
-  const getModule = (action: string): string => {
-    if (action.includes('user')) return 'Пользователи';
-    if (action.includes('tu')) return 'Справочник ТУ';
-    if (action.includes('role')) return 'Роли';
-    if (action.includes('comment')) return 'Комментарии';
-    if (action === 'login' || action === 'logout') return 'Авторизация';
-    if (action === 'import') return 'Импорт';
-    if (action === 'create' || action === 'update' || action === 'delete') return 'Объекты';
-    return 'Система';
   };
 
   const moduleColors: Record<string, string> = {
