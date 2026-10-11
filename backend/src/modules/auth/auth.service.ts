@@ -26,6 +26,13 @@ export class AuthService {
 
   private recordFailure(key: string) {
     const now = Date.now();
+    for (const [storedKey, entry] of this.failedLogins) {
+      if (now - entry.firstAt >= WINDOW_MS) this.failedLogins.delete(storedKey);
+    }
+    if (this.failedLogins.size >= 10000 && !this.failedLogins.has(key)) {
+      const oldestKey = this.failedLogins.keys().next().value;
+      if (oldestKey) this.failedLogins.delete(oldestKey);
+    }
     const current = this.failedLogins.get(key);
     if (!current || now - current.firstAt >= WINDOW_MS) {
       this.failedLogins.set(key, { count: 1, firstAt: now });
