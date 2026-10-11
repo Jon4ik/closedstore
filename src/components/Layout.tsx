@@ -53,8 +53,8 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
               </div>
               {adminNavItems.filter(item => hasPermission(item.permission)).map(item => (
                 <button key={item.id} onClick={() => { onNavigate(item.id); setSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${currentPage === item.id ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}>
-                  <item.icon size={18} />{item.label}
+                  className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'px-3'} py-2.5 rounded-lg text-sm font-medium transition-colors ${currentPage === item.id ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  <item.icon size={18} /><span className={sidebarCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
                 </button>
               ))}
             </>
