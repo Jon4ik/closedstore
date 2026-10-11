@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
+import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -23,13 +24,13 @@ export class UsersController {
 
   @Post()
   @RequirePermissions('manage_users')
-  create(@Body() body: any, @Request() req) {
+  create(@Body() body: CreateUserDto, @Request() req) {
     return this.usersService.create(body, req.user.sub, req.user.username);
   }
 
   @Put(':id')
   @RequirePermissions('manage_users')
-  update(@Param('id') id: string, @Body() body: any, @Request() req) {
+  update(@Param('id') id: string, @Body() body: UpdateUserDto, @Request() req) {
     return this.usersService.update(id, body, req.user.sub, req.user.username);
   }
 
