@@ -49,6 +49,17 @@ class ApiClient {
     return this.request<any>('/auth/me');
   }
 
+  async updateMyProfile(data: { username?: string; fullName?: string; chatId?: string | null; telegramId?: string | null; theme?: 'light' | 'dark' | 'system' }) {
+    return this.request<any>('/auth/me/profile', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async changeMyPassword(currentPassword: string, newPassword: string) {
+    return this.request<{ access_token: string; user: any }>('/auth/me/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  }
+
   // Projects
   async getProjects(params?: any) {
     const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
