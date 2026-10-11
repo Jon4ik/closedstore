@@ -15,7 +15,7 @@ export class ImportService {
     }
     const workbook = new ExcelJS.Workbook();
     try {
-      await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(Buffer.from(buffer));
     } catch {
       throw new BadRequestException('Не удалось прочитать Excel-файл');
     }
