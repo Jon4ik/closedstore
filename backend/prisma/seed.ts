@@ -48,6 +48,25 @@ async function main() {
     console.log('Demo accounts seeded with explicitly supplied passwords.');
   }
 
+  else {
+    // Disable legacy demo accounts only when their password still matches the published default.
+    // This preserves real accounts that have already rotated their passwords.
+    for (const [username, defaultPassword] of [
+      ['admin', 'admin123'],
+      ['manager', 'manager123'],
+      ['viewer', 'viewer123'],
+    ]) {
+      const existing = await prisma.user.findUnique({ where: { username }, select: { id: true, password: true, isActive: true } });
+      if (existing && existing.isActive && await bcrypt.compare(defaultPassword, existing.password)) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: { isActive: false, tokenVersion: { increment: 1 } },
+        });
+        console.warn(`Disabled legacy account "${username}" because it still used a published default password.`);
+      }
+    }
+  }
+
   const tus = [
     { fullName: 'Зотов Денис', position: 'Территориальный управляющий', phone: '+7 (999) 123-45-67', email: 'zotov@company.ru' },
     { fullName: 'Дрямова Валентина', position: 'Территориальный управляющий', phone: '+7 (999) 234-56-78', email: 'dryamova@company.ru' },
