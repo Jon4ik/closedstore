@@ -67,6 +67,21 @@ async function main() {
     }
   }
 
+  // One-time production bootstrap: supply a strong password, then remove the variable.
+  const bootstrapAdminPassword = process.env.BOOTSTRAP_ADMIN_PASSWORD;
+  if (bootstrapAdminPassword !== undefined && bootstrapAdminPassword !== '') {
+    if (bootstrapAdminPassword.length < 12 || bootstrapAdminPassword.length > 128) {
+      throw new Error('BOOTSTRAP_ADMIN_PASSWORD должен содержать 12–128 символов');
+    }
+    const hash = await bcrypt.hash(bootstrapAdminPassword, 12);
+    await prisma.user.upsert({
+      where: { username: 'admin' },
+      update: { password: hash, tokenVersion: { increment: 1 }, isActive: true, roleId: adminRole.id },
+      create: { username: 'admin', password: hash, fullName: 'Администратор Системы', roleId: adminRole.id },
+    });
+    console.log('Administrator account bootstrapped with a supplied password.');
+  }
+
   const tus = [
     { fullName: 'Зотов Денис', position: 'Территориальный управляющий', phone: '+7 (999) 123-45-67', email: 'zotov@company.ru' },
     { fullName: 'Дрямова Валентина', position: 'Территориальный управляющий', phone: '+7 (999) 234-56-78', email: 'dryamova@company.ru' },
