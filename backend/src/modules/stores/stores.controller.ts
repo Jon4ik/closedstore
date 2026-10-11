@@ -47,8 +47,8 @@ export class StoresController {
 
   @Post(':id/restore')
   @RequirePermissions('delete_closures')
-  restore(@Param('id') id: string) {
-    return this.storesService.restore(id);
+  restore(@Param('id') id: string, @Request() req) {
+    return this.storesService.restore(id, req.user.sub, req.user.username);
   }
 
   @Get(':id/comments')
@@ -60,12 +60,12 @@ export class StoresController {
   @Post(':id/comments')
   @RequirePermissions('add_comments')
   addComment(@Param('id') id: string, @Body() body: { text: string }, @Request() req) {
-    return this.storesService.addComment(id, req.user.sub, req.user.fullName || req.user.username, body.text);
+    return this.storesService.addComment(id, req.user.sub, req.user.username, body.text);
   }
 
   @Delete('comments/:commentId')
   @RequirePermissions('delete_comments')
   deleteComment(@Param('commentId') commentId: string, @Request() req) {
-    return this.storesService.deleteComment(commentId, req.user.sub, req.user.fullName || req.user.username);
+    return this.storesService.deleteComment(commentId, req.user.sub, req.user.username);
   }
 }
